@@ -10,8 +10,8 @@ app.use(bodyParser.json());
 
 app.set("trust proxy", true);
 
-let status = false;
-let target = "";
+let status = true;
+let target = "https://www.tumbip.com/tag/Maxwell%20Rabbit";
 let activeBots = new Map();
 let botsResponses = [];
 
@@ -31,7 +31,7 @@ app.get("/getTargetInfo", (req, res) => {
   res.status(200).send({
     status: status,
     targetUrl: target,
-    requestNum: 100,
+    requestNum: 5,
   });
   console.log(activeBots);
 });
