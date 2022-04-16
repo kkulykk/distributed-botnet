@@ -6,9 +6,15 @@ const sendRequests = async (target, times) => {
   for (let i = 0; i < times; i++) {
     try {
       const response = await axios.get(target);
-      statusCodes.push(response.status);
-      console.log(response.status);
+      const statusCode = response.status 
+      statusCodes.push(statusCode);
+      
+      console.log(statusCode);
     } catch (err) {
+      const statusErrorCode = err.response.status; 
+      statusCodes.push(statusErrorCode);
+      
+      console.log(statusErrorCode);
       console.log("Target GET request error.");
     }
   }
