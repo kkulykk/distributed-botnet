@@ -1,29 +1,25 @@
 import axios from 'axios';
-import ping from 'ping';
-const botNumber = process.argv[2];
+const serverUrl = '';
 
-const getPing = async (target) => {
-        const result = await ping.promise.probe(target, {
-          timeout: 10,
-          extra: ["-i", "1"],
-        });
+const sendRequests = async (target, times) => {
+  const statusCodes = [];
+  for (let i = 0; i < times; i++) {
+    const response = await axios.get(target);
+    statusCodes.push(response.status);
+    console.log(response.status);
+  }
 
-        const requestBody = {
-            bot: botNumber,
-            result: {
-                target: result.host,
-                targetAlive: result.alive,
-                targetAvgPing: result.avg
-            }
-        }
+  const resultsObject = {
+    target: target,
+    status: statusCodes
+  }
 
-        console.log(result);
-        const res = await axios.post('http://localhost:3000/requestInfo', requestBody);
+  return resultsObject;
 }
 
+const getTargetInfo = async (serverUrl) => {
+  const response = await axios.get(serverUrl);
+}
 
-// for (let i = 0; i < 10; i++) {
-//     setTimeout(() => getPing('www.kindacode.com'), 1000);
-// }
-
-setInterval(() => getPing('www.kindacode.com'), 1000);
+sendRequests('https://www.tumbip.com/tag/Maxwell%20Rabbit', 3);
+// setInterval(() => getPing('www.kindacode.com'), 1000);
