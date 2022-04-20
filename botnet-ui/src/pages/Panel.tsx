@@ -10,7 +10,7 @@ import {
 } from "@vechaiui/react";
 
 const Panel = () => {
-  const serverUrl = "http://localhost:3001";
+  const serverUrl = "http://localhost:5000";
 
   const [time, setTime] = useState(0);
   const [running, setRunning] = useState(false);
@@ -60,8 +60,9 @@ const Panel = () => {
     try {
       const response = await axios.get(serverUrl + getActiveBotsEndpoint);
       const responseData = response.data;
+      const { connectedBots } = responseData;
 
-      setActiveBots(responseData);
+      setActiveBots(connectedBots);
       console.log(responseData);
     } catch (err) {
       console.log(err);
@@ -94,6 +95,7 @@ const Panel = () => {
       clearInterval(intervalTimer);
       clearInterval(intervalActivity);
     }
+
     return () => {
       clearInterval(intervalTimer);
       clearInterval(intervalActivity);
@@ -146,8 +148,9 @@ const Panel = () => {
               {botsStats.length != 0
                 ? botsStats.map((response: any) => (
                     <Code className="flex flex-col justify-start items-start">
-                      <p>TARGET: {response.target}</p>
-                      <p>STATUS: {JSON.stringify(response.status)}</p>
+                      <p>TIME: {response.ResponseTime}</p>
+                      <p>TARGET: {response.Target}</p>
+                      <p>STATUS: {JSON.stringify(response.Status)}</p>
                     </Code>
                   ))
                 : "No information retrieved yet"}

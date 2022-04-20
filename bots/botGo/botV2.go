@@ -21,7 +21,7 @@ type TargetInfo struct {
 }
 
 func main() {
-	const serverURL = "http://localhost:3001"
+	const serverURL = "http://localhost:5000"
 	StartBot(serverURL)
 }
 
