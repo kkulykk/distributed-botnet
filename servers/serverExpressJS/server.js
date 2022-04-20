@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 app.set("trust proxy", true);
 
 let status = true;
-let target = "https://www.tumbip.com/tag/Maxwell%20Rabbit";
+let target = "https://theuselessweb.com/";
 let connectedBots = new Map();
 let botsResponses = [];
 
