@@ -1,7 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useReducer, useLayoutEffect } from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 import axios from "axios";
 import {
-  IconButton,
+  FormControl,
+  FormLabel,
+  Switch,
   Badge,
   Button,
   Input,
@@ -13,13 +25,34 @@ const Panel = () => {
   const serverUrl = "http://localhost:5000";
 
   const [time, setTime] = useState(0);
+  const [requestsNum, setRequestsNum] = useState(100);
+  const [requestsSent, setRequestsSent] = useState(0);
+  const [active, setActive] = useState(false);
   const [running, setRunning] = useState(false);
   const [target, setTarget] = useState("");
   const [activeBots, setActiveBots] = useState([]);
   const [botsStats, setBotsStats] = useState([]);
+  const [responses, setResponses] = useState<number[]>([]);
+  const [graphData, setGraphData] = useState<Object[]>([]);
+  const [renderCount, forceUpdate] = useReducer((x) => x + 1, 0);
+  const [selectedFile, setSelectedFile] = useState();
+  const [isFilePicked, setIsFilePicked] = useState(false);
+
+  useLayoutEffect(() => {
+    forceUpdate(); // Call forceUpdate when data changes
+  }, [graphData, forceUpdate]);
 
   let intervalTimer: NodeJS.Timer;
   let intervalActivity: NodeJS.Timer;
+
+  const changeHandler = (event: {
+    target: { files: React.SetStateAction<undefined>[] };
+  }) => {
+    setSelectedFile(event.target.files[0]);
+    setIsFilePicked(true);
+  };
+
+  const handleSubmission = () => {};
 
   const changeServerStatus = async (serverUrl: string, status: boolean) => {
     const changeServerStatusEndpoint: string = "/setServerStatus";
@@ -29,10 +62,31 @@ const Panel = () => {
     };
 
     try {
+      setActive(status);
       await axios.post(serverUrl + changeServerStatusEndpoint, statusObject);
     } catch (err) {
       console.log({
         message: "Status setting failed.",
+        errorInfo: err,
+      });
+    }
+  };
+
+  const setRequestsNumber = async (requestsNum: number) => {
+    const setRequestsNumberEndpoint: string = "/setRequestsNumber";
+
+    const requestsNumObject = {
+      requestsNumber: requestsNum,
+    };
+
+    try {
+      await axios.post(
+        serverUrl + setRequestsNumberEndpoint,
+        requestsNumObject
+      );
+    } catch (err) {
+      console.log({
+        message: "Requests number setting failed.",
         errorInfo: err,
       });
     }
@@ -69,7 +123,7 @@ const Panel = () => {
     }
   };
 
-  const getBotsStats = async (serverUrl: string) => {
+  const getBotsStats = async (serverUrl: string, responses: number[]) => {
     const getBotsStatsEndpoint = "/getBotsStats";
     try {
       const response = await axios.get(serverUrl + getBotsStatsEndpoint);
@@ -77,9 +131,57 @@ const Panel = () => {
 
       setBotsStats(responseData.stats);
       console.log(responseData.stats);
+      botsStats.map((resp: any) =>
+        setResponses([...responses, ...resp.Status])
+      );
+      console.log("responses");
+      console.log(responses);
+      setGraphData(parseStatsData(responses));
+      console.log("graphData");
+      console.log(graphData);
     } catch (err) {
       console.log(err);
     }
+  };
+
+  const parseStatsData = (responseList: number[]) => {
+    const data: {
+      statusCode: string;
+      amount: number;
+    }[] = [];
+    const countCodes = responseList.reduce(
+      (acc: any, curr: any) => ((acc[curr] = (acc[curr] || 0) + 1), acc),
+      {}
+    );
+    for (const status of Object.keys(countCodes)) {
+      data.push({
+        statusCode: status,
+        amount: countCodes[status],
+      });
+    }
+    setGraphData(data);
+    return data;
+  };
+
+  const startBotnet = (
+    serverUrl: string,
+    requestsNum: number,
+    target: string
+  ) => {
+    setRunning(true);
+    setTime(0);
+    setRequestsNumber(requestsNum);
+    setResponses([]);
+    changeServerStatus(serverUrl, true);
+    changeTarget(serverUrl, "https://" + target);
+    getActiveBots(serverUrl);
+  };
+
+  const stopBotnet = (serverUrl: string) => {
+    changeServerStatus(serverUrl, false);
+    setRunning(false);
+    setActiveBots([]);
+    setBotsStats([]);
   };
 
   useEffect(() => {
@@ -89,7 +191,8 @@ const Panel = () => {
       }, 10);
       intervalActivity = setInterval(() => {
         getActiveBots(serverUrl);
-        getBotsStats(serverUrl);
+        getBotsStats(serverUrl, responses);
+        // parseStatsData(responses);
       }, 10000);
     } else if (!running) {
       clearInterval(intervalTimer);
@@ -106,10 +209,10 @@ const Panel = () => {
     <div>
       <div className="mt-8 mx-20">
         <h1 className="text-3xl font-bold text-gray-700">Distributed botnet</h1>
-        <p className="text-gray-400 mb-8">version 1.0.0</p>
+        <p className="text-gray-400 mb-8">version 1.0.2</p>
         <div className=" w-full flex h-full">
           <div className="flex flex-col w-1/2">
-            <div className="h-1/2">
+            <div className="h-64">
               <p className="text-gray-500 text-base mb-3">Give the target:</p>
               <div className="w-5/6 mb-5">
                 <Input.Group>
@@ -123,26 +226,52 @@ const Panel = () => {
                 </Input.Group>
               </div>
               <p className="text-gray-400 text-sm">Configuration:</p>
-              <div className="flex flex-col gap-1 mb-3">
-                <Checkbox defaultChecked>Setting string 1</Checkbox>
-                <Checkbox defaultChecked>Setting string 2</Checkbox>
-                <Checkbox defaultChecked>Setting string 3</Checkbox>
+              <div className="flex gap-5 mt-2 mb-3 w-5/6 ">
+                <FormControl id="email" className=" flex flex-col ">
+                  <FormLabel>Amount of requests</FormLabel>
+                  <Input
+                    placeholder="100"
+                    onChange={(e) => {
+                      setRequestsNum(parseInt(e.target.value));
+                    }}
+                    required
+                  />
+                </FormControl>
+                <FormControl className="flex flex-col">
+                  <FormLabel htmlFor="server-active" className="mb-0 mr-2">
+                    Set server active
+                  </FormLabel>
+                  <Switch
+                    className="mt-3"
+                    id="server-active"
+                    checked={active}
+                    onChange={() => changeServerStatus(serverUrl, !active)}
+                  />
+                </FormControl>
               </div>
-              <Button
-                onClick={() => {
-                  setRunning(true);
-                  setTime(0);
-                  changeServerStatus(serverUrl, true);
-                  changeTarget(serverUrl, "https://" + target);
-                  getActiveBots(serverUrl);
-                }}
-                variant="solid"
-                color="primary"
-              >
-                Start testing
-              </Button>
+              <div className="w-5/6 flex justify-end">
+                <div>
+                  <Input
+                    type="file"
+                    name="file"
+                    onChange={() => changeHandler}
+                  />
+                  <div>
+                    {/* <Button onClick={handleSubmission}>Submit</Button> */}
+                  </div>
+                </div>
+                <Button
+                  onClick={() => {
+                    startBotnet(serverUrl, requestsNum, target);
+                  }}
+                  variant="solid"
+                  color="primary"
+                >
+                  Start testing
+                </Button>
+              </div>
             </div>
-            <div className="bg-gray-100 rounded h-1/2 overflow-scroll p-3">
+            <div className="bg-gray-100 rounded h-72 overflow-scroll p-3">
               <p className="text-gray-500 text-base mb-3">Bots response log:</p>
 
               {botsStats.length != 0
@@ -157,7 +286,7 @@ const Panel = () => {
             </div>
           </div>
           <div className="flex-col w-1/2">
-            <div className="h-72">
+            <div className="h-52">
               <div className="flex items-center mb-3 gap-2">
                 <p className="text-gray-500 text-base">Connected bots</p>
                 <Badge>{activeBots.length}</Badge>
@@ -178,10 +307,38 @@ const Panel = () => {
                 )}
               </div>
             </div>
-            <div className="bg-gray-100 rounded ml-2 h-60 p-3">
-              <p className="text-gray-400 text-sm ">
-                Placeholder for something
-              </p>
+            <div className="bg-gray-100 rounded ml-2 h-80 p-3">
+              <p>Requests stats</p>
+              <ResponsiveContainer>
+                <BarChart
+                  // width={500}
+                  // height={300}
+                  key={renderCount}
+                  data={graphData}
+                  margin={{
+                    top: 5,
+                    right: 30,
+                    left: 20,
+                    bottom: 15,
+                  }}
+                  barSize={30}
+                >
+                  <XAxis
+                    dataKey="statusCode"
+                    scale="point"
+                    padding={{ left: 10, right: 10 }}
+                  />
+                  <YAxis />
+                  <Tooltip />
+                  {/* <Legend /> */}
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <Bar
+                    dataKey="amount"
+                    fill="#14B8A6"
+                    background={{ fill: "#eee" }}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>
@@ -195,11 +352,17 @@ const Panel = () => {
         </div>
         <div className=" flex flex-row gap-1">
           <p className="text-gray-400 text-sm ">Status:</p>
-          <p className="text-green-400 text-sm font-medium">Active</p>
+          {active ? (
+            <p className="text-green-400 text-sm font-medium">Active</p>
+          ) : (
+            <p className="text-red-400 text-sm font-medium">Disabled</p>
+          )}
         </div>
         <div className=" flex flex-row gap-1">
           <p className="text-gray-400 text-sm ">Requests sent:</p>
-          <p className="text-green-400 text-sm font-medium">16000</p>
+          <p className="text-gray-700 text-sm font-medium">
+            {responses.length + " / " + requestsNum}
+          </p>
         </div>
         <div className=" flex flex-row gap-1">
           <p className="text-gray-400 text-sm flex items-center">
@@ -215,10 +378,11 @@ const Panel = () => {
 
         <Button
           onClick={() => {
-            changeServerStatus(serverUrl, false);
-            setRunning(false);
-            setActiveBots([]);
-            setBotsStats([]);
+            stopBotnet(serverUrl);
+            // changeServerStatus(serverUrl, false);
+            // setRunning(false);
+            // setActiveBots([]);
+            // setBotsStats([]);
           }}
           variant="solid"
           className="w-20"
