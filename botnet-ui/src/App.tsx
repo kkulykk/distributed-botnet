@@ -1,5 +1,5 @@
 import React from "react";
-import { Route, BrowserRouter as Router, Routes } from "react-router-dom";
+import { Route, HashRouter as Router, Routes } from "react-router-dom";
 import { VechaiProvider } from "@vechaiui/react";
 import Panel from "../src/pages/Panel";
 import Login from "./pages/Login";
@@ -10,7 +10,7 @@ function App() {
     <VechaiProvider>
       <Router>
         <Routes>
-          <Route path="/dashboard" element={<Panel />} />
+          <Route path="/" element={<Panel />} />
           <Route path="/login" element={<Login />} />
         </Routes>
       </Router>

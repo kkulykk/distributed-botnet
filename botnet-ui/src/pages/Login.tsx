@@ -27,7 +27,7 @@ const Login = () => {
     console.log(validPassword);
     if (password !== "" && validPassword) {
       localStorage.setItem("password", hashedPassword);
-      navigate("/dashboard");
+      navigate("/");
       setError("");
     } else {
       setError("Incorrect password");
@@ -36,7 +36,7 @@ const Login = () => {
 
   useEffect(() => {
     if (localStorage.getItem("password")) {
-      navigate("/dashboard");
+      navigate("/");
     } else {
       setVisible(true);
     }
