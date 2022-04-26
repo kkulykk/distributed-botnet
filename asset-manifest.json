@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/distributed-botnet/static/css/main.a78d5242.css",
-    "main.js": "/distributed-botnet/static/js/main.88518434.js",
+    "main.css": "/distributed-botnet/static/css/main.56893ca7.css",
+    "main.js": "/distributed-botnet/static/js/main.f7ce9c0e.js",
     "static/js/787.e72437da.chunk.js": "/distributed-botnet/static/js/787.e72437da.chunk.js",
     "index.html": "/distributed-botnet/index.html",
-    "main.a78d5242.css.map": "/distributed-botnet/static/css/main.a78d5242.css.map",
-    "main.88518434.js.map": "/distributed-botnet/static/js/main.88518434.js.map",
+    "main.56893ca7.css.map": "/distributed-botnet/static/css/main.56893ca7.css.map",
+    "main.f7ce9c0e.js.map": "/distributed-botnet/static/js/main.f7ce9c0e.js.map",
     "787.e72437da.chunk.js.map": "/distributed-botnet/static/js/787.e72437da.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.a78d5242.css",
-    "static/js/main.88518434.js"
+    "static/css/main.56893ca7.css",
+    "static/js/main.f7ce9c0e.js"
   ]
 }
