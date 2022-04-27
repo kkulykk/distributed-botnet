@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 )
 
 type ResultsObject struct {
@@ -22,7 +23,9 @@ type TargetInfo struct {
 
 func main() {
 	const serverURL = "http://localhost:5000"
-	StartBot(serverURL)
+	for {
+		StartBot(serverURL)
+	}
 }
 
 func SendRequests(target string, times int) *ResultsObject {
@@ -95,10 +98,12 @@ func StartBot(serverUrl string) {
 
 	if !targetObject.Status {
 		fmt.Println("Server status is set to false.")
+		time.Sleep(10 * time.Second)
 	}
 
 	if targetObject.TargetUrl == "" {
 		fmt.Println("No target link specified.")
+		time.Sleep(10 * time.Second)
 	}
 
 }
