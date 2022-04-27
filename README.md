@@ -14,7 +14,7 @@
     Second-term <b>Computer Systems Architecture</b> course project 
     <br />
         <br />
-    <a href="https://kulykk.github.io/distributed-botnet/" target="_blank">Go to website</a>
+    <a href="https://kkulykk.github.io/distributed-botnet/" target="_blank">Go to website</a>
     ·
     <a href="https://youtu.be/IGkJCaJ5748">View Demo</a>
     ·
