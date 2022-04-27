@@ -315,7 +315,7 @@ const Panel = () => {
                   activeBots.map((bot: string) => (
                     <div className="bg-gray-100 h-8 flex items-center p-3 mb-1 rounded">
                       <p className="text-gray-700 blur-[5px] hover:blur-none font-medium text-base ">
-                        {bot.slice(2)}
+                        {bot}
                       </p>
                     </div>
                   ))
