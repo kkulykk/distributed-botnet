@@ -10,7 +10,7 @@ import {
 } from "@vechaiui/react";
 
 const Panel = () => {
-  const serverUrl = "http://localhost:3001";
+  const serverUrl = "http://54.211.202.150:5000";
 
   const [time, setTime] = useState(0);
   const [running, setRunning] = useState(false);
