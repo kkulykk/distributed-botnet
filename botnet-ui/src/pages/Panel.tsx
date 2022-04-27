@@ -26,7 +26,7 @@ import {
 const Panel = () => {
   const navigate = useNavigate();
 
-  const serverUrl = "http://localhost:5000";
+  const serverUrl = "http://54.211.202.150:5000";
 
   const exitIcon = (
     <svg
