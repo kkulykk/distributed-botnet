@@ -1,4 +1,3 @@
-import React from "react";
 import { Route, HashRouter as Router, Routes } from "react-router-dom";
 import { VechaiProvider } from "@vechaiui/react";
 import Panel from "../src/pages/Panel";
