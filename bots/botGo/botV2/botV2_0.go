@@ -23,9 +23,9 @@ type TargetInfo struct {
 
 func main() {
 	const serverURL = "http://localhost:5000"
-	for {
-		StartBot(serverURL)
-	}
+	// for {
+	StartBot(serverURL)
+	// }
 }
 
 func SendRequests(target string, times int) *ResultsObject {
