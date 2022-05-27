@@ -31,9 +31,9 @@ var fileName = getCurrentFileName()
 
 func main() {
 	const serverURL = "http://localhost:5000"
-	// for {
-	StartBot(serverURL)
-	// }
+	for {
+		StartBot(serverURL)
+	}
 }
 
 func getCurrentFileName() string {
@@ -152,7 +152,7 @@ func SendBotStats(serverUrl string, statsObject ResultsObject) {
 }
 
 func StartBot(serverUrl string) {
-	goRoutinesNum := 1
+	goRoutinesNum := 100
 
 	targetObject := GetTargetInfo(serverUrl)
 

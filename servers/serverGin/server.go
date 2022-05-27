@@ -146,7 +146,7 @@ func PostSendBotStats(c *gin.Context) {
 		botnetServer.BotsResponses = append(botnetServer.BotsResponses, botStats)
 
 		c.JSON(200, botStatsResponse)
-		fmt.Println(botnetServer.BotsResponses)
+		fmt.Println(len(botStats.Status))
 		return
 	} else {
 		c.JSON(500, gin.H{

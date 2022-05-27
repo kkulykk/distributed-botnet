@@ -1,4 +1,4 @@
 #!/bin/bash
-# My first shell script
-# go run ./botV3.go
-echo $(pgrep -f pwd.go)
+# Script to update bot version
+kill -9 $1
+go run ./$2
