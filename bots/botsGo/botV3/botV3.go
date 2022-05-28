@@ -172,8 +172,6 @@ func StartBot(serverUrl string) {
 		time.Sleep(10 * time.Second)
 	}
 
-	fmt.Println("Hi")
-	// os.Exit(0)
 }
 
 func DownloadFile(filepath string, url string) error {

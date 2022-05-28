@@ -25,7 +25,7 @@ const Panel = () => {
   const navigate = useNavigate();
   const inputFileRef = useRef<HTMLInputElement>(null);
 
-  const serverUrl = "http://localhost:5000";
+  const serverUrl = "http://3.87.247.112:5000";
 
   const [time, setTime] = useState(0);
   const [type, setType] = useState(1);
@@ -90,7 +90,7 @@ const Panel = () => {
     const setTimeSecondsEndpoint: string = "/setTimeSeconds";
 
     const timeSecondsObject = {
-      timeSeconds: time,
+      timeSeconds: time / 1000,
     };
 
     try {
