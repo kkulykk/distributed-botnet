@@ -95,7 +95,7 @@ const Panel = () => {
     const setTimeSecondsEndpoint: string = "/setTimeSeconds";
 
     const timeSecondsObject = {
-      timeSeconds: time / 1000,
+      timeSeconds: time,
     };
 
     try {
@@ -163,7 +163,7 @@ const Panel = () => {
       const response = await axios.get(serverUrl + getBotsStatsEndpoint);
       const responseData = response.data;
 
-      setBotsStats(responseData.stats);
+      setBotsStats(responseData.stats.reverse());
       console.log(responseData.stats);
       const statusCodes: number[] = [];
       responseData.stats.forEach((resp: any) => {
@@ -443,7 +443,7 @@ const Panel = () => {
               <p className="text-gray-500 text-base mb-3">Bots response log:</p>
 
               {botsStats.length !== 0
-                ? botsStats.reverse().map((response: any) => {
+                ? botsStats.map((response: any) => {
                     if (
                       new Date().getTime() -
                         new Date(response.ResponseTime).getTime() <
