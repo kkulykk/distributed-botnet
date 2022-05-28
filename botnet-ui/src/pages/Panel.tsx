@@ -28,9 +28,14 @@ const Panel = () => {
   const serverUrl = "http://3.87.247.112:5000";
 
   const [time, setTime] = useState(0);
+  const [serverTarget, setServerTarget] = useState("");
+  const [serverMode, setServerMode] = useState("");
+  const [serverTime, setServerTime] = useState("");
+  const [serverRequests, setServerRequests] = useState("");
   const [type, setType] = useState(1);
   const [inputValue, setInputValue] = useState(0);
   const [requestsNum, setRequestsNum] = useState(100);
+  const [timeNum, setTimeNum] = useState(0);
   const [active, setActive] = useState(false);
   const [running, setRunning] = useState(false);
   const [target, setTarget] = useState("");
@@ -105,7 +110,6 @@ const Panel = () => {
 
   const setMode = async (mode: number) => {
     setType(mode);
-    mode === 2 ? setRequestsNum(0) : setTime(0);
     const setModeEndpoint: string = "/setMode";
 
     const modeObject = {
@@ -116,7 +120,7 @@ const Panel = () => {
       await axios.post(serverUrl + setModeEndpoint, modeObject);
     } catch (err) {
       console.log({
-        message: "Requests number setting failed.",
+        message: "Number setting failed.",
         errorInfo: err,
       });
     }
@@ -204,7 +208,6 @@ const Panel = () => {
     target: string
   ) => {
     setRunning(true);
-    type === 1 ? setRequestsNumber(requestsNum) : setTimeSeconds(time);
     setResponses([]);
     changeServerStatus(serverUrl, true);
     changeTarget(serverUrl, target);
@@ -252,12 +255,31 @@ const Panel = () => {
     updateSoftware(event.target.files[0]);
   };
 
+  const getServerInfo = async (serverUrl: string) => {
+    const getTargetInfoEndoint = "/getTargetInfo";
+    try {
+      const response = await axios.get(serverUrl + getTargetInfoEndoint);
+      const responseData = response.data;
+      setServerMode(responseData.mode);
+      setServerTarget(responseData.targetUrl);
+      setServerTime(responseData.timeSeconds);
+      setServerRequests(responseData.requestNum);
+      console.log(responseData);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    setInterval(() => {
+      getServerInfo(serverUrl);
+    }, 3000);
+  }, []);
+
   useEffect(() => {
     if (active) {
       intervalTimer = setInterval(() => {
-        type === 1
-          ? setTime((prevTime) => prevTime + 10)
-          : setTime((prevTime) => prevTime - 10);
+        setTime((prevTime) => prevTime + 10);
       }, 10);
 
       intervalActivity = setInterval(() => {
@@ -274,18 +296,6 @@ const Panel = () => {
       clearInterval(intervalActivity);
     };
   }, [active]);
-
-  useEffect(() => {
-    if (time <= 0) {
-      setRunning(false);
-      stopBotnet(serverUrl);
-      setTime(inputValue * 1000);
-    }
-  }, [time]);
-
-  useEffect(() => {
-    type === 1 ? setRequestsNum(inputValue) : setTime(inputValue * 1000);
-  }, [inputValue, type]);
 
   useEffect(() => {
     if (!localStorage.getItem("password")) {
@@ -332,7 +342,6 @@ const Panel = () => {
                   defaultChecked
                   onChange={() => {
                     setMode(1);
-                    setRequestsNum(inputValue);
                   }}
                 >
                   Requests amount
@@ -341,7 +350,6 @@ const Panel = () => {
                   name="basic"
                   onChange={() => {
                     setMode(2);
-                    setTime(inputValue * 1000);
                   }}
                 >
                   Timed attack
@@ -349,16 +357,33 @@ const Panel = () => {
               </div>
               <div className="flex gap-5 mt-3 mb-3 items-center ">
                 <FormControl id="email" className=" flex flex-col ">
-                  <FormLabel>
-                    {type === 1 ? "Requests amount" : "Amount of time (sec)"}
-                  </FormLabel>
+                  <FormLabel>{"Requests amount"}</FormLabel>
                   <Input
-                    placeholder="100"
+                    placeholder="> 100"
                     onChange={(e) => {
-                      setInputValue(
+                      setRequestsNum(
                         isNaN(parseInt(e.target.value))
                           ? 0
                           : parseInt(e.target.value)
+                      );
+                    }}
+                    required
+                  />
+                </FormControl>
+                <FormControl id="email" className=" flex flex-col ">
+                  <FormLabel>{"Time amount (sec)"}</FormLabel>
+                  <Input
+                    placeholder="20"
+                    onChange={(e) => {
+                      setTimeNum(
+                        isNaN(parseInt(e.target.value))
+                          ? 0
+                          : parseInt(e.target.value)
+                      );
+                      setTime(
+                        isNaN(parseInt(e.target.value))
+                          ? 0
+                          : parseInt(e.target.value) * 1000
                       );
                     }}
                     required
@@ -375,23 +400,43 @@ const Panel = () => {
                     onChange={() => changeServerStatus(serverUrl, !active)}
                   />
                 </FormControl>
-                <Button
-                  onClick={() => {
-                    changeTarget(serverUrl, target);
-                  }}
-                >
-                  Change target
-                </Button>
-                <Button
-                  onClick={() => {
-                    startBotnet(serverUrl, requestsNum, time, target);
-                  }}
-                  variant="solid"
-                  color="primary"
-                  disabled={active}
-                >
-                  Start testing
-                </Button>
+                <div className="flex flex-col">
+                  <div className="w-1/2 flex ">
+                    <Button
+                      onClick={() => {
+                        changeTarget(serverUrl, target);
+                      }}
+                    >
+                      Change target
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setTimeSeconds(timeNum);
+                      }}
+                    >
+                      Change time
+                    </Button>
+                  </div>
+                  <div className="flex w-1/2">
+                    <Button
+                      onClick={() => {
+                        setRequestsNumber(requestsNum);
+                      }}
+                    >
+                      Change requests amount
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        startBotnet(serverUrl, requestsNum, time, target);
+                      }}
+                      variant="solid"
+                      color="primary"
+                      disabled={active}
+                    >
+                      Start testing
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
             <div className="bg-gray-100 rounded overflow-scroll p-3 flex flex-col h-1/2">
@@ -494,7 +539,7 @@ const Panel = () => {
         <div className=" flex flex-row gap-1">
           <p className="text-gray-400 text-sm ">Target:</p>
           <p className="text-gray-600 text-sm font-medium">
-            {target ? target : "Not defined"}
+            {serverTarget ? serverTarget : "Not defined"}
           </p>
         </div>
         <div className=" flex flex-row gap-1">
@@ -510,6 +555,18 @@ const Panel = () => {
           <p className="text-gray-700 text-sm font-medium">
             {responses.length}
           </p>
+        </div>
+        <div className=" flex flex-row gap-1">
+          <p className="text-gray-400 text-sm ">Requests:</p>
+          <p className="text-gray-700 text-sm font-medium">{serverRequests}</p>
+        </div>
+        <div className=" flex flex-row gap-1">
+          <p className="text-gray-400 text-sm ">Time:</p>
+          <p className="text-gray-700 text-sm font-medium">{serverTime}</p>
+        </div>
+        <div className=" flex flex-row gap-1">
+          <p className="text-gray-400 text-sm ">Mode:</p>
+          <p className="text-gray-700 text-sm font-medium">{serverMode}</p>
         </div>
         <div className=" flex flex-row gap-1">
           <p className="text-gray-400 text-sm flex items-center">
