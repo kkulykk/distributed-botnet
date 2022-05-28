@@ -48,7 +48,7 @@ const Login = () => {
     <div>
       <div className="mt-8 mx-20 ">
         <h1 className="text-3xl font-bold text-gray-700">Distributed botnet</h1>
-        <p className="text-gray-400 mb-8">version 1.0.3</p>
+        <p className="text-gray-400 mb-8">version 2.0.1</p>
         <div className="w-full mt-52 flex justify-center items-center">
           <div className="w-52 h-36 flex flex-col gap-2">
             <p className="text-sm text-gray-500">Enter password</p>
