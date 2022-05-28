@@ -75,7 +75,7 @@ var MyRegion string
 var filepath string
 
 var targetInfo = TargetInfo{"https://theuselessweb.com/", 10, "timeMode", 1}
-var botnetServer = BotnetServer{true, make(map[string]time.Time), []BotStats{}, "botV3", "https://acsprojectfiles.s3.amazonaws.com/botV3.go"}
+var botnetServer = BotnetServer{false, make(map[string]time.Time), []BotStats{}, "bot1", "https://acsprojectfiles.s3.amazonaws.com/bot1.go"}
 var PORT = 5000
 
 func LoadEnv() {
