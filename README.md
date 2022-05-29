@@ -84,11 +84,10 @@ Here we describe how to use the botnet.
 
 
 1. Install Go if necessary
-2. To run bots, run process manager (```main.go``` in ```bots/processManagerCloud```)
-3. You can press "Start testing" and the server would be active for new bots connections.
-4. To connect the bot to a server, you need to download bot software...
-5. Once the bot is connected, you will see the stats on the dashboard updated every 10 seconds.
-6. After all the work is finished, you can press "Stop" to deactivate the server and "Exit" to log out of the dashboard.
+2. You can press **"Start testing"** and the server would be active for new bots connections.
+3. To run bots, run process manager (```main.go``` in ```bots/processManagerCloud```)
+4. Once the bot is connected, you will see the stats on the dashboard updated every 10 seconds.
+5. After all the work is finished, you can press "Stop" to deactivate the server and "Exit" to log out of the dashboard.
 
 
 ### To use the botnet as a developer
