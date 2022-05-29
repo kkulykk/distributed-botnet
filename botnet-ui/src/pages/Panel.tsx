@@ -241,7 +241,7 @@ const Panel = () => {
     const link = await uploadFile(selectedFile);
     const updateSoftwareEndpoint = "/setBotVersionInfo";
     const softwareObject = {
-      botVersionName: selectedFile.name,
+      botVersionName: selectedFile.name.split('.')[0],
       botFileUrl: link,
     };
     try {

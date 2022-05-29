@@ -55,9 +55,9 @@ func SendRequests(target string, requestsNum int, goroutinesNum int, mode string
 	wg.Add(goroutinesNum)
 	for i := 0; i < goroutinesNum; i++ {
 		if mode == "timeMode" {
-			go SendRequestGoroutineTime("https://hackertyper.com/", timeSeconds, ch, &wg)
+			go SendRequestGoroutineTime(target, timeSeconds, ch, &wg)
 		} else {
-			go SendRequestGoroutine("https://hackertyper.com/", requestsNum/goroutinesNum, ch, &wg)
+			go SendRequestGoroutine(target, requestsNum/goroutinesNum, ch, &wg)
 		}
 
 	}
