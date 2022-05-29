@@ -118,7 +118,6 @@ _Below is an example of how you can download and change the source code._
 - [x] Add `Requests Amount` and `Time attack` mode
 - [x] Remote bots updating using ~~SSH~~ Amazon S3
 - [x] Implementing bots in ~~C++~~ Go using goroutines
-- [x] Add multithreading on Go server
 - [x] Debugging and testing
 - [x] Final presentation
 
