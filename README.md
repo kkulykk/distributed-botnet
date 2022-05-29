@@ -80,9 +80,11 @@ The technical side of the project is built various languages and frameworks:
 
 Here we describe how to use the botnet.
 
-### To use the botnet as a user
-1. You can access the dashboard for controlling the DDoS process with [website](kulykk.github.io/distributed-botnet/). You won't be allowed to access all the features unless you provide a password. To get one, you may email creators by briefly explaining what you need this service for.
-2. Once logged in, you may set up the target and amount of requests that each bot will send.
+### To use the botnet
+
+
+1. Install Go if necessary
+2. To run bots, run process manager (```main.go``` in ```bots/processManagerCloud```)
 3. You can press "Start testing" and the server would be active for new bots connections.
 4. To connect the bot to a server, you need to download bot software...
 5. Once the bot is connected, you will see the stats on the dashboard updated every 10 seconds.
