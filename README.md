@@ -16,7 +16,7 @@
         <br />
     <a href="https://kkulykk.github.io/distributed-botnet/" target="_blank">Go to website</a>
     ·
-    <a href="https://youtu.be/IGkJCaJ5748">View Demo</a>
+    <a href="https://youtu.be/ORd-A4XrvpA">View Demo</a>
     ·
     <a href="https://github.com/kkulykk/distributed-botnet/issues">Request Feature</a>
   </p>
@@ -68,7 +68,6 @@ The technical side of the project is built various languages and frameworks:
 * Node.js and Go (Gin) to develop server and bots
 * ReactJS and Typescript for making user interface
 * AWS (EC2) for server deployment
-* Planning to include C++ for getting better bots performance
 
 
 
@@ -114,13 +113,14 @@ _Below is an example of how you can download and change the source code._
 - [x] Create UI for managing the botnet
 - [x] Establish SSH connection on local machines for the further bots updating
 - [x] Deploy server on AWS for testing and demonstration purposes
-- [ ] First presentation
-- [ ] Adding fuctionality to test multiple targets
-- [ ] Remote bot updating using SSH
-- [ ] Implementing bots in C++ for creating threads
-- [ ] Add multithreading on Go server for parallel bots updating via SSH
-- [ ] Debugging ans testing
-- [ ] Final presentation
+- [x] First presentation
+- [ ] ~~Adding fuctionality to test multiple targets~~
+- [x] Add `Requests Amount` and `Time attack` mode
+- [x] Remote bots updating using ~~SSH~~ Amazon S3
+- [x] Implementing bots in ~~C++~~ Go using goroutines
+- [x] Add multithreading on Go server
+- [x] Debugging and testing
+- [x] Final presentation
 
 
 <p align="right">(<a href="#top">back to top</a>)</p>
