@@ -169,7 +169,7 @@ const Panel = () => {
       responseData.stats.forEach((resp: any) => {
         if (
           new Date().getTime() - new Date(resp.ResponseTime).getTime() <
-          100000
+          10000000
         ) {
           statusCodes.push(...resp.Status);
         }
