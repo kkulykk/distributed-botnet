@@ -16,7 +16,7 @@
         <br />
     <a href="https://kkulykk.github.io/distributed-botnet/" target="_blank">Go to website</a>
     ·
-    <a href="https://youtu.be/IGkJCaJ5748">View Demo</a>
+    <a href="https://youtu.be/ORd-A4XrvpA">View Demo</a>
     ·
     <a href="https://github.com/kkulykk/distributed-botnet/issues">Request Feature</a>
   </p>
@@ -68,7 +68,6 @@ The technical side of the project is built various languages and frameworks:
 * Node.js and Go (Gin) to develop server and bots
 * ReactJS and Typescript for making user interface
 * AWS (EC2) for server deployment
-* Planning to include C++ for getting better bots performance
 
 
 
@@ -81,13 +80,14 @@ The technical side of the project is built various languages and frameworks:
 
 Here we describe how to use the botnet.
 
-### To use the botnet as a user
-1. You can access the dashboard for controlling the DDoS process with [website](kulykk.github.io/distributed-botnet/). You won't be allowed to access all the features unless you provide a password. To get one, you may email creators by briefly explaining what you need this service for.
-2. Once logged in, you may set up the target and amount of requests that each bot will send.
-3. You can press "Start testing" and the server would be active for new bots connections.
-4. To connect the bot to a server, you need to download bot software...
-5. Once the bot is connected, you will see the stats on the dashboard updated every 10 seconds.
-6. After all the work is finished, you can press "Stop" to deactivate the server and "Exit" to log out of the dashboard.
+### To use the botnet
+
+
+1. Install Go if necessary
+2. You can press **"Start testing"** and the server would be active for new bots connections.
+3. To run bots, run process manager (```main.go``` in ```bots/processManagerCloud```)
+4. Once the bot is connected, you will see the stats on the dashboard updated every 10 seconds.
+5. After all the work is finished, you can press "Stop" to deactivate the server and "Exit" to log out of the dashboard.
 
 
 ### To use the botnet as a developer
@@ -114,13 +114,13 @@ _Below is an example of how you can download and change the source code._
 - [x] Create UI for managing the botnet
 - [x] Establish SSH connection on local machines for the further bots updating
 - [x] Deploy server on AWS for testing and demonstration purposes
-- [ ] First presentation
-- [ ] Adding fuctionality to test multiple targets
-- [ ] Remote bot updating using SSH
-- [ ] Implementing bots in C++ for creating threads
-- [ ] Add multithreading on Go server for parallel bots updating via SSH
-- [ ] Debugging ans testing
-- [ ] Final presentation
+- [x] First presentation
+- [ ] ~~Adding fuctionality to test multiple targets~~
+- [x] Add `Requests Amount` and `Time attack` mode
+- [x] Remote bots updating using ~~SSH~~ Amazon S3
+- [x] Implementing bots in ~~C++~~ Go using goroutines
+- [x] Debugging and testing
+- [x] Final presentation
 
 
 <p align="right">(<a href="#top">back to top</a>)</p>

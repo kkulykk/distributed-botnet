@@ -330,7 +330,7 @@ const Panel = () => {
                   onChange={(e) => {
                     setTarget(e.target.value);
                   }}
-                  placeholder="http://indrekis2.blogspot.com/"
+                  placeholder="http://google.com/"
                 />
               </div>
               <div className="flex items-center gap-5 w-5/6 mt-8">
