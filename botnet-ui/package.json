@@ -17,6 +17,7 @@
     "axios": "^0.26.1",
     "bcryptjs": "^2.4.3",
     "gh-pages": "^3.2.3",
+    "prettier": "^2.7.1",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-router-dom": "^6.3.0",

